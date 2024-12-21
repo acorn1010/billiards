@@ -1,22 +1,23 @@
-import { Vector3 } from "three";
+import { Vector3, Vector3Like } from "three";
 import { norm, upCross, up } from "../../utils/utils";
 import { muS, muC, g, m, Mz, Mxy, R, I, e } from "./constants";
 import { Mathaven } from "./mathaven";
 import { ee, μs, μw } from "../../diagram/constants";
+import { BodyKinematics } from "./BodyKinematics";
 
-export function surfaceVelocity(v, w) {
+export function surfaceVelocity(v: Vector3, w: Vector3) {
   return surfaceVelocityFull(v, w).setZ(0);
 }
 
 const sv = new Vector3();
-export function surfaceVelocityFull(v, w) {
+export function surfaceVelocityFull(v: Vector3, w: Vector3) {
   return sv.copy(v).addScaledVector(upCross(w), R);
 }
 
 const delta = { v: new Vector3(), w: new Vector3() };
 Object.freeze(delta);
 
-export function sliding(v, w) {
+export function sliding(v: Vector3, w: Vector3) {
   const va = surfaceVelocity(v, w);
   delta.v.copy(norm(va).multiplyScalar(-muS * g));
   delta.w.copy(norm(upCross(va)).multiplyScalar(((5 / 2) * muS * g) / R));
@@ -24,7 +25,7 @@ export function sliding(v, w) {
   return delta;
 }
 
-export function rollingFull(w) {
+export function rollingFull(w: Vector3Like): BodyKinematics {
   const mag = new Vector3(w.x, w.y, 0).length();
   const k = ((5 / 7) * Mxy) / (m * R) / mag;
   const kw = ((5 / 7) * Mxy) / (m * R * R) / mag;
@@ -37,13 +38,18 @@ export function rollingFull(w) {
   return delta;
 }
 
-export function forceRoll(v: Vector3, w: Vector3) {
+export function forceRoll(v: Vector3Like, w: Vector3) {
   const wz = w.z;
   w.copy(upCross(v).multiplyScalar(1 / R));
   w.setZ(wz);
 }
 
-export function rotateApplyUnrotate(theta, v, w, model) {
+export function rotateApplyUnrotate(
+  theta: number,
+  v: Vector3,
+  w: Vector3,
+  model: (v: Vector3, w: Vector3) => BodyKinematics,
+): BodyKinematics {
   const vr = v.clone().applyAxisAngle(up, theta);
   const wr = w.clone().applyAxisAngle(up, theta);
 
@@ -64,35 +70,35 @@ const theta_a = Math.asin(epsilon / R);
 const sin_a = Math.sin(theta_a);
 const cos_a = Math.cos(theta_a);
 
-export function s0(v, w) {
+export function s0(v: Vector3, w: Vector3) {
   return new Vector3(
     v.x * sin_a - v.z * cos_a + R * w.y,
     -v.y - R * w.z * cos_a + R * w.x * sin_a,
   );
 }
 
-export function c0(v) {
+export function c0(v: Vector3) {
   return v.x * cos_a;
 }
 
-export function Pzs(s) {
+export function Pzs(s: Vector3) {
   const A = 7 / 2 / m;
   return s.length() / A;
 }
 
-export function Pze(c) {
+export function Pze(c: number) {
   const B = 1 / m;
   const coeff = restitutionCushion(new Vector3(c / cos_a, 0, 0));
   return (muC * ((1 + coeff) * c)) / B;
 }
 
-export function isGripCushion(v, w) {
+export function isGripCushion(v: Vector3, w: Vector3) {
   const Pze_val = Pze(c0(v));
   const Pzs_val = Pzs(s0(v, w));
   return Pzs_val <= Pze_val;
 }
 
-function basisHan(v, w) {
+function basisHan(v: Vector3, w: Vector3) {
   return {
     c: c0(v),
     s: s0(v, w),
@@ -132,11 +138,7 @@ function slipHan(v: Vector3, w: Vector3) {
  * @returns delta to apply to velocity and spin
  */
 export function bounceHan(v: Vector3, w: Vector3) {
-  if (isGripCushion(v, w)) {
-    return gripHan(v, w);
-  } else {
-    return slipHan(v, w);
-  }
+  return isGripCushion(v, w) ? gripHan(v, w) : slipHan(v, w);
 }
 
 /**
@@ -188,27 +190,7 @@ export function muCushion(v: Vector3) {
 }
 
 export function restitutionCushion(v: Vector3) {
-  const e = 0.39 + 0.257 * v.x - 0.044 * v.x * v.x;
-  return e;
-}
-
-function cartesionToBallCentric(v: Vector3, w) {
-  const mathaven = new Mathaven(m, R, ee, μs, μw + 0.1);
-  mathaven.solve(v.x, v.y, w.x, w.y, w.z);
-
-  const rv = new Vector3(mathaven.vx, mathaven.vy, 0);
-  const rw = new Vector3(mathaven.ωx, mathaven.ωy, mathaven.ωz);
-
-  return { v: rv.sub(v), w: rw.sub(w) };
-}
-
-/**
- * Bounce is called with ball travelling in +x direction to cushion,
- * mathaven expects it in +y direction and also requires angle
- * and spin to be relative to direction of ball travel.
- */
-export function mathavenAdapter(v: Vector3, w: Vector3) {
-  return rotateApplyUnrotate(Math.PI / 2, v, w, cartesionToBallCentric);
+  return 0.39 + 0.257 * v.x - 0.044 * v.x * v.x;
 }
 
 /**
@@ -223,8 +205,24 @@ export function cueToSpin(offset: Vector3, v: Vector3) {
   const spinAxis = Math.atan2(-offset.x, offset.y);
   const spinRate = ((5 / 2) * v.length() * (offset.length() * R)) / (R * R);
   const dir = v.clone().normalize();
-  const rvel = upCross(dir)
-    .applyAxisAngle(dir, spinAxis)
-    .multiplyScalar(spinRate);
-  return rvel;
+  return upCross(dir).applyAxisAngle(dir, spinAxis).multiplyScalar(spinRate);
+}
+
+/**
+ * Bounce is called with ball travelling in +x direction to cushion,
+ * mathaven expects it in +y direction and also requires angle
+ * and spin to be relative to direction of ball travel.
+ */
+export function mathavenAdapter(v: Vector3, w: Vector3) {
+  return rotateApplyUnrotate(Math.PI / 2, v, w, cartesianToBallCentric);
+}
+
+function cartesianToBallCentric(v: Vector3, w: Vector3) {
+  const mathaven = new Mathaven(m, R, ee, μs, μw + 0.1);
+  mathaven.solve(v.x, v.y, w.x, w.y, w.z);
+
+  const rv = new Vector3(mathaven.vx, mathaven.vy, 0);
+  const rw = new Vector3(mathaven.ωx, mathaven.ωy, mathaven.ωz);
+
+  return { v: rv.sub(v), w: rw.sub(w) };
 }

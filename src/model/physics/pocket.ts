@@ -9,18 +9,18 @@ export class Pocket {
     private readonly radius: number,
   ) {}
 
-  private static willFall(pocket, futurePosition) {
+  private static willFall(pocket: Pocket, futurePosition: Vector3) {
     return futurePosition.distanceTo(pocket.pos) < pocket.radius;
   }
 
-  public fall(ball, t) {
+  public fall(ball: Ball, t: number): number {
     ball.vel.z = -g * t;
     ball.state = State.Falling;
     ball.pocket = this;
     return ball.vel.length();
   }
 
-  public updateFall(ball: Ball, t) {
+  public updateFall(ball: Ball, t: number) {
     ball.vel.addScaledVector(up, -R * 10 * t * g);
     const z = ball.pos.z;
     const xypos = ball.pos.clone().setZ(0);
@@ -52,11 +52,11 @@ export class Pocket {
     }
   }
 
-  private restingDepth(ball) {
+  private restingDepth(ball: Ball): number {
     return -3 * R - (R * ball.id) / 4;
   }
 
-  static findPocket(pocketCenters, ball: Ball, t: number) {
+  static findPocket(pocketCenters: Pocket[], ball: Ball, t: number) {
     const futurePosition = ball.futurePosition(t);
     return pocketCenters.find((p) => Pocket.willFall(p, futurePosition));
   }
