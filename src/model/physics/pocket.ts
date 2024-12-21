@@ -4,13 +4,7 @@ import { R, g } from "./constants"
 import { up, upCross, zero } from "../../utils/utils"
 
 export class Pocket {
-  pos: Vector3
-  radius: number
-
-  constructor(pos, radius) {
-    this.pos = pos
-    this.radius = radius
-  }
+  constructor(private readonly pos: Vector3, private readonly radius: number) {}
 
   private static willFall(pocket, futurePosition) {
     return futurePosition.distanceTo(pocket.pos) < pocket.radius

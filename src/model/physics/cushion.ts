@@ -1,8 +1,8 @@
-import { Ball } from "../ball"
-import { TableGeometry } from "../../view/tablegeometry"
-import { bounceHanBlend, rotateApplyUnrotate } from "./physics"
-import { Vector3 } from "three"
-import { PocketGeometry } from "../../view/pocketgeometry"
+import { Ball } from "../ball";
+import { PocketGeometry } from "../../view/pocketgeometry";
+import { TableGeometry } from "../../view/tablegeometry";
+import { bounceHanBlend, rotateApplyUnrotate } from "./physics";
+import { Vector3 } from "three";
 
 export class Cushion {
   /**
@@ -15,22 +15,22 @@ export class Cushion {
     ball: Ball,
     t: number,
     hasPockets: boolean = true,
-    cushionModel = bounceHanBlend
+    cushionModel = bounceHanBlend,
   ): number | undefined {
-    const futurePosition = ball.futurePosition(t)
+    const futurePosition = ball.futurePosition(t);
 
     if (Cushion.willBounceLong(futurePosition, hasPockets)) {
       const dir =
-        futurePosition.y > TableGeometry.tableY ? -Math.PI / 2 : Math.PI / 2
-      return Cushion.bounceIn(dir, ball, cushionModel)
+        futurePosition.y > TableGeometry.tableY ? -Math.PI / 2 : Math.PI / 2;
+      return Cushion.bounceIn(dir, ball, cushionModel);
     }
 
     if (Cushion.willBounceShort(futurePosition, hasPockets)) {
-      const dir = futurePosition.x > TableGeometry.tableX ? 0 : Math.PI
-      return Cushion.bounceIn(dir, ball, cushionModel)
+      const dir = futurePosition.x > TableGeometry.tableX ? 0 : Math.PI;
+      return Cushion.bounceIn(dir, ball, cushionModel);
     }
 
-    return undefined
+    return undefined;
   }
 
   static willBounceShort(futurePosition, hasPockets) {
@@ -38,14 +38,14 @@ export class Cushion {
       return Cushion.willBounceShortSegment(
         TableGeometry.Y,
         -TableGeometry.Y,
-        futurePosition
-      )
+        futurePosition,
+      );
     }
     return Cushion.willBounceShortSegment(
       PocketGeometry.pockets.pocketNW.knuckleSW.pos.y,
       PocketGeometry.pockets.pocketSW.knuckleNW.pos.y,
-      futurePosition
-    )
+      futurePosition,
+    );
   }
 
   static willBounceLong(futurePosition, hasPockets) {
@@ -53,21 +53,21 @@ export class Cushion {
       return Cushion.willBounceLongSegment(
         -TableGeometry.X,
         TableGeometry.X,
-        futurePosition
-      )
+        futurePosition,
+      );
     }
     return (
       Cushion.willBounceLongSegment(
         PocketGeometry.pockets.pocketNW.knuckleNE.pos.x,
         PocketGeometry.pockets.pocketN.knuckleNW.pos.x,
-        futurePosition
+        futurePosition,
       ) ||
       Cushion.willBounceLongSegment(
         PocketGeometry.pockets.pocketN.knuckleNE.pos.x,
         PocketGeometry.pockets.pocketNE.knuckleNW.pos.x,
-        futurePosition
+        futurePosition,
       )
-    )
+    );
   }
 
   /**
@@ -77,37 +77,37 @@ export class Cushion {
   private static willBounceLongSegment(
     left: number,
     right: number,
-    futurePosition: Vector3
+    futurePosition: Vector3,
   ): boolean {
     return (
       futurePosition.x > left &&
       futurePosition.x < right &&
       Math.abs(futurePosition.y) > TableGeometry.tableY
-    )
+    );
   }
 
   private static willBounceShortSegment(
     top: number,
     bottom: number,
-    futurePosition: Vector3
+    futurePosition: Vector3,
   ): boolean {
     return (
       futurePosition.y > bottom &&
       futurePosition.y < top &&
       Math.abs(futurePosition.x) > TableGeometry.tableX
-    )
+    );
   }
 
   private static bounceIn(rotation, ball, cushionModel) {
-    ball.ballmesh.trace.forceTrace(ball.futurePos)
+    ball.ballmesh.trace.forceTrace(ball.futurePos);
     const delta = rotateApplyUnrotate(
       rotation,
       ball.vel,
       ball.rvel,
-      cushionModel
-    )
-    ball.vel.add(delta.v)
-    ball.rvel.add(delta.w)
-    return delta.v.length()
+      cushionModel,
+    );
+    ball.vel.add(delta.v);
+    ball.rvel.add(delta.w);
+    return delta.v.length();
   }
 }
