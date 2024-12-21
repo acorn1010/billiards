@@ -8,8 +8,9 @@ import {
 } from "../model/physics/physics";
 import { BallMesh } from "../view/ballmesh";
 import { Pocket } from "./physics/pocket";
+import { BodyKinematics } from "./physics/BodyKinematics";
 
-export enum State {
+export const enum State {
   Stationary = "Stationary",
   Rolling = "Rolling",
   Sliding = "Sliding",
@@ -66,7 +67,7 @@ export class Ball {
     }
   }
 
-  private addDelta(t: number, delta) {
+  private addDelta(t: number, delta: BodyKinematics) {
     delta.v.multiplyScalar(t);
     delta.w.multiplyScalar(t);
     if (!this.passesZero(delta)) {
@@ -75,7 +76,7 @@ export class Ball {
     }
   }
 
-  private passesZero(delta) {
+  private passesZero(delta: BodyKinematics) {
     const vz = passesThroughZero(this.vel, delta.v);
     const wz = passesThroughZero(this.rvel, delta.w);
     const halts = this.state === State.Rolling ? vz || wz : vz && wz;

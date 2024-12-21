@@ -1,4 +1,4 @@
-export enum EventType {
+export const enum EventType {
   BEGIN = "BEGIN",
   BREAK = "BREAK",
   WATCHAIM = "WATCHAIM",

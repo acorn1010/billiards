@@ -1,6 +1,6 @@
 import { Ball } from "./ball";
 
-export enum OutcomeType {
+export const enum OutcomeType {
   Pot = "Pot",
   Cushion = "Cushion",
   Collision = "Collision",

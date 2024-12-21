@@ -26,7 +26,7 @@ export class Collision {
     };
   }
 
-  static readonly model = new CollisionThrow();
+  private static readonly model = new CollisionThrow();
 
   private static updateVelocities(a: Ball, b: Ball) {
     const impactSpeed = Collision.model.updateVelocities(a, b);

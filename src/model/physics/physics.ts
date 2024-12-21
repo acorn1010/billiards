@@ -226,29 +226,6 @@ export function bounceHanBlend(v: Vector3, w: Vector3) {
 }
 
 /**
- * Approximates the friction coefficient (mu) for a cushion collision
- * based on the angle of incidence in the X-Y plane.
- *
- * @param v Ball velocity
- * @returns A friction value between 0 and 1 (approximately)
- */
-export function muCushion(v: Vector3) {
-  const theta = Math.atan2(Math.abs(v.y), v.x);
-  return 0.471 - theta * 0.241;
-}
-
-/**
- * Approximates the normal restitution of a collision with the cushion
- * using a quadratic function of the ball’s X velocity.
- *
- * @param v Ball velocity
- * @returns A coefficient of restitution between 0 and 1 (approximately)
- */
-export function restitutionCushion(v: Vector3) {
-  return 0.39 + 0.257 * v.x - 0.044 * v.x * v.x;
-}
-
-/**
  * Computes the spin (angular velocity) imparted to the ball by a cue strike
  * offset from the center. The offset is a fraction of the ball’s radius (R).
  * Formula adapted from established billiards analysis.
@@ -275,6 +252,29 @@ export function cueToSpin(offset: Vector3, v: Vector3) {
  */
 export function mathavenAdapter(v: Vector3, w: Vector3) {
   return rotateApplyUnrotate(Math.PI / 2, v, w, cartesianToBallCentric);
+}
+
+/**
+ * Approximates the friction coefficient (mu) for a cushion collision
+ * based on the angle of incidence in the X-Y plane.
+ *
+ * @param v Ball velocity
+ * @returns A friction value between 0 and 1 (approximately)
+ */
+function muCushion(v: Vector3) {
+  const theta = Math.atan2(Math.abs(v.y), v.x);
+  return 0.471 - theta * 0.241;
+}
+
+/**
+ * Approximates the normal restitution of a collision with the cushion
+ * using a quadratic function of the ball’s X velocity.
+ *
+ * @param v Ball velocity
+ * @returns A coefficient of restitution between 0 and 1 (approximately)
+ */
+function restitutionCushion(v: Vector3) {
+  return 0.39 + 0.257 * v.x - 0.044 * v.x * v.x;
 }
 
 /** Internal helper function for applying the Mathaven solver in ball-centric coordinates. */

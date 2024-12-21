@@ -11,11 +11,12 @@ import { TableGeometry } from "../view/tablegeometry";
 import { bounceHanBlend } from "./physics/physics";
 import { zero } from "../utils/utils";
 import { R } from "./physics/constants";
+import { Vector3Like } from "three";
 
-interface Pair {
+type Pair = {
   a: Ball;
   b: Ball;
-}
+};
 
 export class Table {
   balls: Ball[];
@@ -43,7 +44,7 @@ export class Table {
     }
   }
 
-  updateBallMesh(t) {
+  updateBallMesh(t: number) {
     this.balls.forEach((a) => {
       a.updateMesh(t);
     });
@@ -193,16 +194,16 @@ export class Table {
     scene.add(this.cue.placerMesh);
   }
 
-  showTraces(bool) {
+  showTraces(visible: boolean) {
     this.balls.forEach((b) => {
-      b.ballmesh.trace.line.visible = bool;
+      b.ballmesh.trace.line.visible = visible;
       b.ballmesh.trace.reset();
     });
   }
 
-  showSpin(bool) {
+  showSpin(visible: boolean) {
     this.balls.forEach((b) => {
-      b.ballmesh.spinAxisArrow.visible = bool;
+      b.ballmesh.spinAxisArrow.visible = visible;
     });
   }
 
@@ -222,7 +223,7 @@ export class Table {
     this.cueball.pos.copy(pos);
   }
 
-  overlapsAny(pos, excluding = this.cueball) {
+  overlapsAny(pos: Vector3Like, excluding = this.cueball) {
     return this.balls
       .filter((b) => b !== excluding)
       .some((b) => b.pos.distanceTo(pos) < 2 * R);
