@@ -4,69 +4,82 @@ import { Collision } from "./collision";
 import { I, m, R } from "./constants";
 
 /**
- * Based on 
+ * Based on
  * https://billiards.colostate.edu/technical_proofs/new/TP_A-14.pdf
- * 
+ *
  */
 export class CollisionThrow {
+  private dynamicFriction(vRel: number): number {
+    return 0.01 + 0.108 * Math.exp(-1.088 * vRel);
+  }
 
-    private dynamicFriction(vRel: number): number {
-        return 0.01 + 0.108 * Math.exp(-1.088 * vRel);
-    }
+  public updateVelocities(a: Ball, b: Ball) {
+    const contact = Collision.positionsAtContact(a, b);
+    a.ballmesh.trace.forceTrace(contact.a);
+    b.ballmesh.trace.forceTrace(contact.b);
+    const ab = contact.b.sub(contact.a).normalize();
+    const abTangent = new Vector3(-ab.y, ab.x, 0);
 
-    public updateVelocities(a: Ball, b: Ball) {
+    const e = 0.98;
+    const vPoint = a.vel
+      .clone()
+      .sub(b.vel)
+      .add(
+        ab
+          .clone()
+          .multiplyScalar(-R)
+          .cross(a.rvel)
+          .sub(ab.clone().multiplyScalar(R).cross(b.rvel)),
+      );
 
-        const contact = Collision.positionsAtContact(a, b);
-        a.ballmesh.trace.forceTrace(contact.a)
-        b.ballmesh.trace.forceTrace(contact.b)
-        const ab = contact.b.sub(contact.a).normalize();
-        const abTangent = new Vector3(-ab.y, ab.x, 0);
+    const vRelNormalMag = ab.dot(vPoint);
+    const vRel = vPoint.addScaledVector(ab, -vRelNormalMag);
+    const vRelMag = vRel.length();
+    const vRelTangential = abTangent.dot(vRel); // slip velocity perpendicular to line of impact
 
-        const e = 0.98
-        const vPoint = a.vel.clone().sub(b.vel).add(
-            ab.clone().multiplyScalar(-R).cross(a.rvel).sub(
-                ab.clone().multiplyScalar(R).cross(b.rvel)
-            )
-        );
+    const μ = this.dynamicFriction(vRelMag);
 
-        const vRelNormalMag = ab.dot(vPoint);
-        const vRel = vPoint.addScaledVector(ab, -vRelNormalMag)
-        const vRelMag = vRel.length();
-        const vRelTangential = abTangent.dot(vRel); // slip velocity perpendicular to line of impact
+    let normalImpulse = vRelNormalMag;
+    let tangentialImpulse =
+      Math.min((μ * vRelNormalMag) / vRelMag, 1 / 7) * -vRelTangential;
 
-        const μ = this.dynamicFriction(vRelMag);
+    // matches paper when throwAngle = Math.atan2(tangentialImpulse, normalImpulse)
 
-        let normalImpulse = vRelNormalMag;
-        let tangentialImpulse =
-            Math.min((μ * vRelNormalMag) / vRelMag, 1 / 7) * (-vRelTangential)
+    // Normal impulse (inelastic collision)
+    normalImpulse = (-(1 + e) * vRelNormalMag) / (2 / m);
 
-        // matches paper when throwAngle = Math.atan2(tangentialImpulse, normalImpulse)
+    // Tangential impulse (frictional constraint)
+    tangentialImpulse =
+      Math.min((μ * Math.abs(normalImpulse)) / vRelMag, 1 / 7) *
+      -vRelTangential;
 
-        // Normal impulse (inelastic collision)
-        normalImpulse = -(1 + e) * vRelNormalMag / (2 / m);
+    // Impulse vectors
+    const impulseNormal = ab.clone().multiplyScalar(normalImpulse);
+    const impulseTangential = abTangent
+      .clone()
+      .multiplyScalar(tangentialImpulse);
 
-        // Tangential impulse (frictional constraint)
-        tangentialImpulse = Math.min(
-            (μ * Math.abs(normalImpulse)) / vRelMag,
-            1 / 7
-        ) * -vRelTangential;
+    // Apply impulses to linear velocities
+    a.vel
+      .addScaledVector(impulseNormal, 1 / m)
+      .addScaledVector(impulseTangential, 1 / m);
+    b.vel
+      .addScaledVector(impulseNormal, -1 / m)
+      .addScaledVector(impulseTangential, -1 / m);
 
-        // Impulse vectors
-        const impulseNormal = ab.clone().multiplyScalar(normalImpulse);
-        const impulseTangential = abTangent.clone().multiplyScalar(tangentialImpulse);
+    // Angular velocity updates
+    const angularImpulseA = ab
+      .clone()
+      .multiplyScalar(-R)
+      .cross(impulseTangential);
+    const angularImpulseB = ab
+      .clone()
+      .multiplyScalar(R)
+      .cross(impulseTangential);
 
-        // Apply impulses to linear velocities
-        a.vel.addScaledVector(impulseNormal, 1 / m).addScaledVector(impulseTangential, 1 / m);
-        b.vel.addScaledVector(impulseNormal, -1 / m).addScaledVector(impulseTangential, -1 / m);
+    a.rvel.addScaledVector(angularImpulseA, 1 / I);
+    b.rvel.addScaledVector(angularImpulseB, 1 / I);
 
-        // Angular velocity updates
-        const angularImpulseA = ab.clone().multiplyScalar(-R).cross(impulseTangential);
-        const angularImpulseB = ab.clone().multiplyScalar(R).cross(impulseTangential);
-
-        a.rvel.addScaledVector(angularImpulseA, 1 / I);
-        b.rvel.addScaledVector(angularImpulseB, 1 / I);
-
-        return vRelNormalMag;
-    }
-
+    return vRelNormalMag;
+  }
 }
