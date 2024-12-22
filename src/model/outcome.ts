@@ -1,6 +1,7 @@
 import { Ball } from "./ball";
+import { Table } from "./table";
 
-export const enum OutcomeType {
+const enum OutcomeType {
   Pot = "Pot",
   Cushion = "Cushion",
   Collision = "Collision",
@@ -8,43 +9,42 @@ export const enum OutcomeType {
 }
 
 export class Outcome {
-  type: OutcomeType;
-  timestamp: number;
-  ballA: Ball | null = null;
-  ballB: Ball | null = null;
-  incidentSpeed: number;
+  readonly timestamp: number = Date.now();
 
-  constructor(type, ballA: Ball, ballB: Ball, incidentSpeed) {
-    this.type = type;
-    this.ballA = ballA;
-    this.ballB = ballB;
-    this.incidentSpeed = incidentSpeed;
-    this.timestamp = Date.now();
+  private constructor(
+    readonly type: OutcomeType,
+    private ballA: Ball,
+    private ballB: Ball,
+    readonly incidentSpeed: number,
+  ) {
+    if (ballA === null || ballB === null) {
+      throw new Error("Ball cannot be null");
+    }
   }
 
-  static pot(ballA, incidentSpeed) {
+  static pot(ballA: Ball, incidentSpeed: number) {
     return new Outcome(OutcomeType.Pot, ballA, ballA, incidentSpeed);
   }
 
-  static cushion(ballA, incidentSpeed) {
+  static cushion(ballA: Ball, incidentSpeed: number) {
     return new Outcome(OutcomeType.Cushion, ballA, ballA, incidentSpeed);
   }
 
-  static collision(ballA, ballB, incidentSpeed) {
+  static collision(ballA: Ball, ballB: Ball, incidentSpeed: number) {
     return new Outcome(OutcomeType.Collision, ballA, ballB, incidentSpeed);
   }
 
-  static hit(ballA, incidentSpeed) {
+  static hit(ballA: Ball, incidentSpeed: number) {
     return new Outcome(OutcomeType.Hit, ballA, ballA, incidentSpeed);
   }
 
-  static isCueBallPotted(cueBall, outcomes: Outcome[]) {
+  static isCueBallPotted(cueBall: Ball, outcomes: Outcome[]) {
     return outcomes.some(
       (o) => o.type == OutcomeType.Pot && o.ballA === cueBall,
     );
   }
 
-  static isBallPottedNoFoul(cueBall, outcomes: Outcome[]) {
+  static isBallPottedNoFoul(cueBall: Ball, outcomes: Outcome[]) {
     return (
       outcomes.some((o) => o.type == OutcomeType.Pot && o.ballA !== null) &&
       !Outcome.isCueBallPotted(cueBall, outcomes)
@@ -69,16 +69,16 @@ export class Outcome {
     return collisions.length > 0 ? collisions[0] : undefined;
   }
 
-  static isClearTable(table) {
+  static isClearTable(table: Table) {
     const onTable = table.balls.filter((ball) => ball.onTable());
     return onTable.length === 1 && onTable[0] === table.cueball;
   }
 
-  static isThreeCushionPoint(cueBall, outcomes: Outcome[]) {
+  static isThreeCushionPoint(cueBall: Ball, outcomes: Outcome[]) {
     outcomes = Outcome.cueBallFirst(cueBall, outcomes).filter(
       (outcome) => outcome.ballA === cueBall,
     );
-    const cannons = new Set();
+    const cannons = new Set<Ball>();
     let cushions = 0;
     for (const outcome of outcomes) {
       if (outcome.type === OutcomeType.Cushion) {
@@ -94,7 +94,8 @@ export class Outcome {
     return false;
   }
 
-  static cueBallFirst(cueBall, outcomes) {
+  /** Mutates `outcomes` so that the cue ball is always ballA. */
+  private static cueBallFirst(cueBall: Ball, outcomes: Outcome[]) {
     outcomes.forEach((o) => {
       if (o.type === OutcomeType.Collision && o.ballB === cueBall) {
         o.ballB = o.ballA;
