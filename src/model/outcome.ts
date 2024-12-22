@@ -14,7 +14,7 @@ export class Outcome {
   private constructor(
     readonly type: OutcomeType,
     private ballA: Ball,
-    private ballB: Ball,
+    public ballB: Ball,
     readonly incidentSpeed: number,
   ) {
     if (ballA === null || ballB === null) {
@@ -56,7 +56,7 @@ export class Outcome {
       .filter((o) => o.type == OutcomeType.Pot)
       .map((o) => o.ballA!);
   }
-  static potCount(outcomes: Outcome[]) {
+  static potCount(outcomes: Outcome[]): number {
     return this.pots(outcomes).length;
   }
 

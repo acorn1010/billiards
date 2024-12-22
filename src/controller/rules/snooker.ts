@@ -16,7 +16,7 @@ import { TableGeometry } from "../../view/tablegeometry";
 import { PlaceBall } from "../placeball";
 import { PlaceBallEvent } from "../../events/placeballevent";
 import { zero } from "../../utils/utils";
-import { SnookerUtils } from "./snookerutils";
+import { ShotInfo, SnookerUtils } from "./snookerutils";
 import { StartAimEvent } from "../../events/startaimevent";
 
 export class Snooker implements Rules {
@@ -137,13 +137,13 @@ export class Snooker implements Rules {
     return this.continueBreak();
   }
 
-  foul(outcomes: Outcome[], info) {
+  foul(outcomes: Outcome[], info: ShotInfo) {
     this.foulPoints = this.foulCalculation(outcomes, info);
     this.respot(outcomes);
     return this.switchPlayer();
   }
 
-  foulCalculation(outcomes: Outcome[], info) {
+  foulCalculation(outcomes: Outcome[], info: ShotInfo) {
     const potted = Outcome.pots(outcomes)
       .map((b) => b.id)
       .filter((id) => id < 7);
