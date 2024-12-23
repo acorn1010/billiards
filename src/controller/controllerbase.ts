@@ -1,7 +1,6 @@
 import { AbortEvent } from "../events/abortevent";
 import { Controller } from "./controller";
 import { End } from "./end";
-import { exportGltf } from "../utils/gltf";
 import { Outcome } from "../model/outcome";
 import { Vector3 } from "three";
 
@@ -45,9 +44,6 @@ export abstract class ControllerBase extends Controller {
         return true;
       case "ShiftArrowRight":
         cue.adjustSpin(new Vector3(-delta, 0), this.container.table);
-        return true;
-      case "KeyPUp":
-        exportGltf(this.container.view.scene);
         return true;
       case "KeyHUp":
         cue.toggleHelper();

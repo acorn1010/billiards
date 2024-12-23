@@ -11,7 +11,7 @@ import { TableGeometry } from "../view/tablegeometry";
 import { bounceHanBlend } from "./physics/physics";
 import { zero } from "../utils/utils";
 import { R } from "./physics/constants";
-import { Vector3Like } from "three";
+import { Scene, Vector3Like } from "three";
 
 /**
  * Represents a pair of billiard balls for collision detection
@@ -197,7 +197,10 @@ export class Table {
    * Serialize table state to JSON
    * @returns Serialized table data
    */
-  serialise(): { balls: ReturnType<Ball['serialise']>[]; aim: ReturnType<Cue['aim']['copy']> } {
+  serialise(): {
+    balls: ReturnType<Ball["serialise"]>[];
+    aim: ReturnType<Cue["aim"]["copy"]>;
+  } {
     return {
       balls: this.balls.map((b) => b.serialise()),
       aim: this.cue.aim.copy(),
@@ -257,7 +260,7 @@ export class Table {
    * Add table elements to the 3D scene
    * @param scene Three.js scene to add elements to
    */
-  addToScene(scene: THREE.Scene): void {
+  addToScene(scene: Scene): void {
     this.balls.forEach((b) => {
       b.ballmesh.addToScene(scene);
     });

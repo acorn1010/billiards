@@ -2,7 +2,6 @@ import { Container } from "./container";
 import { Keyboard } from "../events/keyboard";
 import { BreakEvent } from "../events/breakevent";
 import { mathavenAdapter } from "../model/physics/physics";
-import JSONCrush from "jsoncrush";
 import { Assets } from "../view/assets";
 import { GameEvent } from "../events/gameevent";
 
@@ -25,7 +24,6 @@ export class BrowserContainer {
   };
   cushionModel;
   assets: Assets;
-  private readonly now = Date.now();
 
   constructor(canvas3d, params) {
     this.playername = params.get("name") ?? "";
@@ -37,11 +35,10 @@ export class BrowserContainer {
     this.cushionModel = mathavenAdapter; // this.cushion(params.get("cushionModel"));
   }
 
-  start() {
+  async start(): Promise<void> {
     this.assets = new Assets(this.ruletype);
-    this.assets.loadFromWeb(() => {
-      this.onAssetsReady();
-    });
+    await this.assets.loadFromWeb();
+    this.onAssetsReady();
   }
 
   onAssetsReady() {
@@ -54,7 +51,6 @@ export class BrowserContainer {
       this.playername,
     );
     this.container.table.cushionModel = this.cushionModel;
-    this.setReplayLink();
 
     this.container.eventQueue.push(new BreakEvent());
 
@@ -66,19 +62,5 @@ export class BrowserContainer {
   broadcast(event: GameEvent) {
     // Tests overwrite this broadcast function. It's stupid, I know.
     console.log("broadcast", event);
-  }
-
-  setReplayLink() {
-    const url = window.location.href.split("?")[0];
-    const prefix = `${url}?ruletype=${this.ruletype}&state=`;
-    this.container.recorder.replayUrl = prefix;
-  }
-
-  parse(s) {
-    try {
-      return JSON.parse(s);
-    } catch (_) {
-      return JSON.parse(JSONCrush.uncrush(s));
-    }
   }
 }
