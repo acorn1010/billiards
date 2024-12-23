@@ -1,149 +1,90 @@
-import { Container } from "./container"
-import { Keyboard } from "../events/keyboard"
-import { EventUtil } from "../events/eventutil"
-import { BreakEvent } from "../events/breakevent"
-import { SocketConnection } from "../network/client/socketconnection"
-import { GameEvent } from "../events/gameevent"
-import { bounceHan, bounceHanBlend, mathavenAdapter } from "../model/physics/physics"
-import JSONCrush from "jsoncrush"
-import { Assets } from "../view/assets"
+import { Container } from "./container";
+import { Keyboard } from "../events/keyboard";
+import { BreakEvent } from "../events/breakevent";
+import { SocketConnection } from "../network/client/socketconnection";
+import { GameEvent } from "../events/gameevent";
+import { mathavenAdapter } from "../model/physics/physics";
+import JSONCrush from "jsoncrush";
+import { Assets } from "../view/assets";
 
 /**
  * Integrate game container into HTML page
  */
 export class BrowserContainer {
-  container: Container
-  canvas3d
-  tableId
-  clientId
-  wss
-  ruletype
-  playername: string
-  replay: string | null
-  sc: SocketConnection | null = null
+  container: Container;
+  canvas3d;
+  tableId;
+  clientId;
+  wss;
+  ruletype;
+  playername: string;
+  replay: string | null;
+  sc: SocketConnection | null = null;
   breakState = {
     init: null,
     shots: Array<string>(),
     now: 0,
     score: 0,
-  }
-  cushionModel
-  assets: Assets
-  now
+  };
+  cushionModel;
+  assets: Assets;
+  now;
   constructor(canvas3d, params) {
-    this.now = Date.now()
-    this.playername = params.get("name") ?? ""
-    this.tableId = params.get("tableId") ?? "default"
-    this.clientId = params.get("clientId") ?? "default"
-    this.replay = params.get("state")
-    this.ruletype = params.get("ruletype") ?? "nineball"
-    this.wss = params.get("websocketserver")
-    this.canvas3d = canvas3d
-    this.cushionModel = this.cushion(params.get("cushionModel"))
-  }
-
-  cushion(model) {
-    switch (model) {
-      case "bounceHan":
-        return bounceHan
-      case "bounceHanBlend":
-        return bounceHanBlend
-      default:
-        return mathavenAdapter
-    }
+    this.now = Date.now();
+    this.playername = params.get("name") ?? "";
+    this.tableId = params.get("tableId") ?? "default";
+    this.clientId = params.get("clientId") ?? "default";
+    this.replay = params.get("state");
+    this.ruletype = params.get("ruletype") ?? "nineball";
+    this.wss = params.get("websocketserver");
+    this.canvas3d = canvas3d;
+    this.cushionModel = mathavenAdapter; // this.cushion(params.get("cushionModel"));
   }
 
   start() {
-    this.assets = new Assets(this.ruletype)
+    this.assets = new Assets(this.ruletype);
     this.assets.loadFromWeb(() => {
-      this.onAssetsReady()
-    })
+      this.onAssetsReady();
+    });
   }
 
   onAssetsReady() {
-    console.log(`${this.playername} assets ready`)
+    console.log(`${this.playername} assets ready`);
     this.container = new Container(
       this.canvas3d,
       console.log,
       this.assets,
       this.ruletype,
       new Keyboard(this.canvas3d),
-      this.playername
-    )
+      this.playername,
+    );
     this.container.broadcast = (e) => {
-      this.broadcast(e)
-    }
-    this.container.table.cushionModel = this.cushionModel
-    this.setReplayLink()
-    if (this.wss) {
-      const params = `name=${this.playername}&tableId=${this.tableId}&clientId=${this.clientId}`
-      this.container.isSinglePlayer = false
-      this.sc = new SocketConnection(`${this.wss}?${params}`, this.clientId)
-      this.networkButton()
-      this.sc.eventHandler = (e) => {
-        this.netEvent(e)
-      }
-    }
+      this.broadcast(e);
+    };
+    this.container.table.cushionModel = this.cushionModel;
+    this.setReplayLink();
 
-    if (this.replay) {
-      this.startReplay(this.replay)
-    } else if (!this.sc) {
-      this.container.eventQueue.push(new BreakEvent())
-    }
+    this.container.eventQueue.push(new BreakEvent());
 
     // trigger animation loops
-    this.container.animate(performance.now())
-  }
-
-  netEvent(e: string) {
-    const event = EventUtil.fromSerialised(e)
-    console.log(`${this.playername} received ${event.type}`)
-    this.container.eventQueue.push(event)
-  }
-
-  networkButton() {
-    document.getElementById("network")!.onclick = () => {
-      this.sc?.close()
-    }
+    this.container.animate(performance.now());
   }
 
   broadcast(event: GameEvent) {
-    this.sc?.send(event)
+    this.sc?.send(event);
   }
 
   setReplayLink() {
-    const url = window.location.href.split("?")[0]
-    const prefix = `${url}?ruletype=${this.ruletype}&state=`
-    this.container.recorder.replayUrl = prefix
-  }
-
-  startReplay(replay) {
-    console.log(replay)
-    this.breakState = this.parse(replay)
-    console.log(this.breakState)
-    if (Date.now() - this.breakState.now < 500000) {
-      console.log("upload")
-      this.offerUpload()
-    }
-    const breakEvent = new BreakEvent(
-      this.breakState.init,
-      this.breakState.shots
-    )
-    this.container.eventQueue.push(breakEvent)
-    this.container.menu.replayMode(window.location.href, breakEvent)
+    const url = window.location.href.split("?")[0];
+    const prefix = `${url}?ruletype=${this.ruletype}&state=`;
+    this.container.recorder.replayUrl = prefix;
   }
 
   parse(s) {
     try {
-      return JSON.parse(s)
+      return JSON.parse(s);
     } catch (_) {
-      return JSON.parse(JSONCrush.uncrush(s))
+      return JSON.parse(JSONCrush.uncrush(s));
     }
-  }
-
-  offerUpload() {
-    this.container.chat.showMessage(
-      `<a class="pill" target="_blank" href="https://scoreboard-tailuge.vercel.app/hiscore.html${location.search}"> upload high score 🏆</a`
-    )
   }
 }
