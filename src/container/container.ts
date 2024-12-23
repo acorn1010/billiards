@@ -9,7 +9,6 @@ import { AimInputs } from "../view/aiminputs";
 import { Keyboard } from "../events/keyboard";
 import { Sound } from "../view/sound";
 import { controllerName } from "../controller/util";
-import { Chat } from "../view/chat";
 import { Recorder } from "../events/recorder";
 import { Rules } from "../controller/rules/rules";
 import { RuleFactory } from "../controller/rules/rulefactory";
@@ -38,7 +37,6 @@ export class Container {
   last = performance.now();
   readonly step = 0.001953125;
 
-  broadcast: (event: GameEvent) => void;
   log: (text: string) => void;
 
   constructor(element, log, assets, ruletype?, keyboard?, id?) {
@@ -60,6 +58,10 @@ export class Container {
   private readonly throttle = new Throttle(0, (event: GameEvent) => {
     this.broadcast(event);
   });
+
+  private broadcast(_: GameEvent) {
+    // no-op
+  }
 
   sendEvent(event: GameEvent) {
     this.throttle.send(event);
