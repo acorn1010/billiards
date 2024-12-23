@@ -37,10 +37,7 @@ export class Container {
   last = performance.now();
   readonly step = 0.001953125;
 
-  log: (text: string) => void;
-
-  constructor(element, log, assets, ruletype?, keyboard?, id?) {
-    this.log = log;
+  constructor(element, assets, ruletype?, keyboard?, id?) {
     this.rules = RuleFactory.create(ruletype, this);
     this.table = this.rules.table();
     this.view = new View(element, this.table, assets);
@@ -126,7 +123,7 @@ export class Container {
 
   updateController(controller) {
     if (controller !== this.controller) {
-      this.log("Transition to " + controllerName(controller));
+      console.log("Transition to " + controllerName(controller));
       this.controller = controller;
       this.controller.onFirst();
     }

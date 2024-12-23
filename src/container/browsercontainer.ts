@@ -48,7 +48,6 @@ export class BrowserContainer {
     console.log(`${this.playername} assets ready`);
     this.container = new Container(
       this.canvas3d,
-      console.log,
       this.assets,
       this.ruletype,
       new Keyboard(this.canvas3d),

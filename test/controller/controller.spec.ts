@@ -34,11 +34,10 @@ describe("Controller", () => {
   beforeEach(function (done) {
     container = new Container(
       document.getElementById("viewP1"),
-      (_) => {},
       Assets.localAssets(),
     );
     broadcastEvents = [];
-    container.broadcast = (x) => broadcastEvents.push(x);
+    (container as any).broadcast = (x) => broadcastEvents.push(x);
     Ball.id = 0;
     done();
   });
@@ -232,11 +231,10 @@ describe("Controller", () => {
   it("PlaceBall moves to Aim if threecushion", (done) => {
     container = new Container(
       document.getElementById("viewP1"),
-      (_) => {},
       Assets.localAssets(),
       "threecushion",
     );
-    container.broadcast = (x) => broadcastEvents.push(x);
+    (container as any).broadcast = (x) => broadcastEvents.push(x);
     container.eventQueue.push(new BeginEvent());
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(PlaceBall);
