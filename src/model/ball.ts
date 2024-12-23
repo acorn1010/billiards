@@ -45,8 +45,11 @@ export class Ball {
   /** Pocket the ball is falling into (if any) */
   pocket: Pocket | undefined;
 
-  /** Counter for generating unique ball IDs */
-  private static id = 0;
+  /**
+   * Counter for generating unique ball IDs
+   * @VisibleForTesting
+   */
+  static id = 0;
   /** Unique identifier for this ball */
   readonly id = Ball.id++;
 

@@ -2,7 +2,6 @@ import { AbortEvent } from "../events/abortevent";
 import { Controller } from "./controller";
 import { End } from "./end";
 import { exportGltf } from "../utils/gltf";
-import { ChatEvent } from "../events/chatevent";
 import { Outcome } from "../model/outcome";
 import { Vector3 } from "three";
 
@@ -11,13 +10,6 @@ export abstract class ControllerBase extends Controller {
 
   override handleAbort(_: AbortEvent): Controller {
     return new End(this.container);
-  }
-
-  override handleChat(chatevent: ChatEvent): Controller {
-    const sender = chatevent.sender ? `${chatevent.sender}:` : "";
-    const message = `${sender} ${chatevent.message}`;
-    this.container.chat.showMessage(message);
-    return this;
   }
 
   hit() {

@@ -10,13 +10,12 @@ import { Keyboard } from "../events/keyboard";
 import { Sound } from "../view/sound";
 import { controllerName } from "../controller/util";
 import { Chat } from "../view/chat";
-import { ChatEvent } from "../events/chatevent";
-import { Throttle } from "../events/throttle";
 import { Recorder } from "../events/recorder";
 import { Rules } from "../controller/rules/rules";
 import { RuleFactory } from "../controller/rules/rulefactory";
 import { Menu } from "../view/menu";
 import { Hud } from "../view/hud";
+import { Throttle } from "../events/throttle";
 
 /**
  * Model, View, Controller container.
@@ -29,7 +28,6 @@ export class Container {
   eventQueue: GameEvent[] = [];
   keyboard: Keyboard;
   sound: Sound;
-  chat: Chat;
   recorder: Recorder;
   id: string = "";
   isSinglePlayer: boolean = true;
@@ -51,7 +49,6 @@ export class Container {
     this.table.cue.aimInputs = new AimInputs(this);
     this.keyboard = keyboard;
     this.sound = assets.sound;
-    this.chat = new Chat(this.sendChat);
     this.recorder = new Recorder(this);
     this.id = id;
     this.menu = new Menu(this);
@@ -60,15 +57,11 @@ export class Container {
     this.updateController(new Init(this));
   }
 
-  sendChat = (msg) => {
-    this.sendEvent(new ChatEvent(this.id, msg));
-  };
-
-  throttle = new Throttle(0, (event) => {
+  private readonly throttle = new Throttle(0, (event: GameEvent) => {
     this.broadcast(event);
   });
 
-  sendEvent(event) {
+  sendEvent(event: GameEvent) {
     this.throttle.send(event);
   }
 

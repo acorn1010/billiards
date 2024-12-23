@@ -1,11 +1,10 @@
 import { Container } from "./container";
 import { Keyboard } from "../events/keyboard";
 import { BreakEvent } from "../events/breakevent";
-import { SocketConnection } from "../network/client/socketconnection";
-import { GameEvent } from "../events/gameevent";
 import { mathavenAdapter } from "../model/physics/physics";
 import JSONCrush from "jsoncrush";
 import { Assets } from "../view/assets";
+import { GameEvent } from "../events/gameevent";
 
 /**
  * Integrate game container into HTML page
@@ -15,11 +14,9 @@ export class BrowserContainer {
   canvas3d;
   tableId;
   clientId;
-  wss;
   ruletype;
   playername: string;
   replay: string | null;
-  sc: SocketConnection | null = null;
   breakState = {
     init: null,
     shots: Array<string>(),
@@ -28,15 +25,14 @@ export class BrowserContainer {
   };
   cushionModel;
   assets: Assets;
-  now;
+  private readonly now = Date.now();
+
   constructor(canvas3d, params) {
-    this.now = Date.now();
     this.playername = params.get("name") ?? "";
     this.tableId = params.get("tableId") ?? "default";
     this.clientId = params.get("clientId") ?? "default";
     this.replay = params.get("state");
     this.ruletype = params.get("ruletype") ?? "nineball";
-    this.wss = params.get("websocketserver");
     this.canvas3d = canvas3d;
     this.cushionModel = mathavenAdapter; // this.cushion(params.get("cushionModel"));
   }
@@ -58,9 +54,6 @@ export class BrowserContainer {
       new Keyboard(this.canvas3d),
       this.playername,
     );
-    this.container.broadcast = (e) => {
-      this.broadcast(e);
-    };
     this.container.table.cushionModel = this.cushionModel;
     this.setReplayLink();
 
@@ -70,8 +63,10 @@ export class BrowserContainer {
     this.container.animate(performance.now());
   }
 
+  /** @VisibleForTesting */
   broadcast(event: GameEvent) {
-    this.sc?.send(event);
+    // Tests overwrite this broadcast function. It's stupid, I know.
+    console.log("broadcast", event);
   }
 
   setReplayLink() {
