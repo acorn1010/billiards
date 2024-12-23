@@ -28,7 +28,7 @@ export class Assets {
       importGltf("models/background.gltf").then(
         (m) => (this.background = m.scene as any),
       ),
-      importGltf(this.rules.asset()).then((m) => {
+      importGltf(this.rules.getTableAssetPath()).then((m) => {
         this.table = m.scene as any;
         TableMesh.mesh = m.scene.children[0];
       }),

@@ -185,7 +185,7 @@ export class Snooker implements Rules {
     return true;
   }
 
-  asset(): string {
+  getTableAssetPath(): string {
     return Snooker.tablemodel;
   }
 
