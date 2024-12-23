@@ -41,7 +41,7 @@ export class BrowserContainer {
     this.onAssetsReady();
   }
 
-  onAssetsReady() {
+  private onAssetsReady() {
     console.log(`${this.playername} assets ready`);
     this.container = new Container(
       this.canvas3d,
