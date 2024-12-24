@@ -318,7 +318,7 @@ describe("Controller", () => {
   });
 
   it("advance generates no event", (done) => {
-    container.advance(100);
+    container.advance(0.1);
     expect(container.eventQueue.length).to.equal(0);
     done();
   });
@@ -326,11 +326,11 @@ describe("Controller", () => {
   it("advance generates StationaryEvent at end of shot", (done) => {
     container.controller = new PlayShot(container);
     container.table.cueball.vel.x = 0.001;
-    container.advance(10);
+    container.advance(0.01);
     expect(container.eventQueue.length).to.equal(1);
     container.table.outcome.push(Outcome.pot(container.table.balls[1], 1));
     container.processEvents();
-    container.advance(10);
+    container.advance(0.01);
     expect(container.eventQueue.length).to.equal(1);
     done();
   });

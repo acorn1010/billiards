@@ -60,7 +60,7 @@ describe("Snooker", () => {
     container.inputQueue.push(new Input(0.1, "SpaceUp"));
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(Aim);
-    container.advance(1_000);
+    container.advance(1);
     container.processEvents();
   }
 
@@ -81,7 +81,7 @@ describe("Snooker", () => {
     container.inputQueue.push(new Input(0.1, "SpaceUp"));
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(PlayShot);
-    container.advance(1_000);
+    container.advance(1);
     container.processEvents();
   }
 
@@ -112,7 +112,7 @@ describe("Snooker", () => {
     // pot black
     setupTableWithPot(table.balls[6]);
     playShotWaitForOutcome();
-    container.advance(1_000);
+    container.advance(1);
     container.processEvents();
 
     expect(container.controller).to.be.an.instanceof(Aim);
@@ -131,7 +131,7 @@ describe("Snooker", () => {
     // pot yellow
     setupTableWithPot(table.balls[1]);
     playShotWaitForOutcome();
-    container.advance(1_000);
+    container.advance(1);
     container.processEvents();
 
     expect(container.controller).to.be.an.instanceof(Aim);
@@ -149,7 +149,7 @@ describe("Snooker", () => {
     // pot black
     setupTableWithPot(table.balls[6]);
     playShotWaitForOutcome();
-    container.advance(1_000);
+    container.advance(1);
     container.processEvents();
 
     expect(container.controller).to.be.an.instanceof(Aim);
@@ -170,7 +170,7 @@ describe("Snooker", () => {
     // pot green
     setupTableWithPot(table.balls[2]);
     playShotWaitForOutcome();
-    container.advance(1_000);
+    container.advance(1);
     container.processEvents();
 
     expect(container.controller).to.be.an.instanceof(Aim);

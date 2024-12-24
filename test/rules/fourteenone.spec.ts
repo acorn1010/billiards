@@ -49,7 +49,7 @@ describe("FourteenOne", () => {
     container.processEvents();
     container.inputQueue.push(new Input(0.1, "SpaceUp"));
     container.processEvents();
-    container.advance(1_000);
+    container.advance(1);
     container.processEvents();
   }
 
@@ -75,7 +75,7 @@ describe("FourteenOne", () => {
     container.table.cue.aim.pos.copy(container.table.balls[0].pos);
     container.inputQueue.push(new Input(0.1, "SpaceUp"));
     container.processEvents();
-    container.advance(1_000);
+    container.advance(1);
     container.processEvents();
   }
 
@@ -111,10 +111,10 @@ describe("FourteenOne", () => {
     const before = JSON.stringify(container.recorder.shots[1]);
 
     // play second pot
-    container.advance(1_000);
+    container.advance(1);
     container.processEvents();
     playShotWaitForOutcome();
-    container.advance(1_000);
+    container.advance(1);
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(Aim);
 
