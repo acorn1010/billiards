@@ -35,7 +35,11 @@ export class Container {
   hud: Hud;
 
   last = performance.now();
-  readonly step = 0.001953125;
+  /**
+   * Time in milliseconds for a physics step. This is a whole number to prevent rounding errors.
+   * Any step duration over about 10ms will cause the physics to become very unstable.
+   */
+  private readonly STEP_DURATION_MS = 2;
 
   constructor(element, assets, ruletype?, keyboard?, id?) {
     this.rules = RuleFactory.create(ruletype, this);
@@ -64,13 +68,17 @@ export class Container {
     this.throttle.send(event);
   }
 
-  /** @VisibleForTesting */
-  advance(elapsed: number) {
-    const steps = Math.floor(elapsed / this.step);
-    const computedElapsed = steps * this.step;
+  /**
+   * Advances the physics state by `elapsedMs` milliseconds.
+   * @VisibleForTesting
+   */
+  advance(elapsedMs: number) {
+    const steps = Math.floor(elapsedMs / this.STEP_DURATION_MS);
+    const computedElapsed = (steps * this.STEP_DURATION_MS) / 1_000;
     const stateBefore = this.table.allStationary();
+    // table.advance is the slowest part of the physics simulation loop by a lot.
     for (let i = 0; i < steps; i++) {
-      this.table.advance(this.step);
+      this.table.advance(this.STEP_DURATION_MS);
     }
     this.table.updateBallMesh(computedElapsed);
     this.view.update(computedElapsed, this.table.cue.aim);
@@ -106,7 +114,7 @@ export class Container {
   lastEventTime = performance.now();
 
   animate(timestamp: number): void {
-    this.advance((timestamp - this.last) / 1000);
+    this.advance(timestamp - this.last);
     this.last = timestamp;
     this.processEvents();
     // Render for 12 seconds after last event or if something changed.
@@ -118,9 +126,11 @@ export class Container {
       this.view.render();
     }
     // Request next frame
-    requestAnimationFrame((t) => {
-      this.animate(t);
-    });
+    setTimeout(() => {
+      requestAnimationFrame((t) => {
+        this.animate(t);
+      });
+    }, 1_000);
   }
 
   updateController(controller) {

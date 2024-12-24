@@ -79,18 +79,18 @@ export class Table {
 
   /**
    * Advance physics simulation by one time step
-   * @param t Time step in seconds
+   * @param t Time step in milliseconds
    * @throws Error if collision resolution exceeds maximum depth
    */
   advance(t: number): void {
     let depth = 0;
-    while (!this.prepareAdvanceAll(t)) {
+    while (!this.prepareAdvanceAll(t / 1_000)) {
       if (depth++ > 100) {
         throw new Error("Depth exceeded resolving collisions");
       }
     }
     this.balls.forEach((a) => {
-      a.update(t);
+      a.update(t / 1_000);
     });
   }
 
