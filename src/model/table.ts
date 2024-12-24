@@ -84,7 +84,7 @@ export class Table {
    */
   advance(t: number): void {
     let depth = 0;
-    while (!this.prepareAdvanceAll(t / 1_000)) {
+    while (!this.prepareAdvanceAll(t)) {
       if (depth++ > 100) {
         throw new Error("Depth exceeded resolving collisions");
       }
@@ -96,7 +96,7 @@ export class Table {
 
   /**
    * Check if all balls can advance by time step without collisions
-   * @param t Time step in seconds
+   * @param t Time step in milliseconds
    * @returns True if no collisions will occur
    */
   prepareAdvanceAll(t: number): boolean {
@@ -110,11 +110,11 @@ export class Table {
    * Check if a pair of balls can advance without colliding
    * @param a First ball
    * @param b Second ball
-   * @param t Time step in seconds
+   * @param t Time step in milliseconds
    * @returns True if no collision will occur
    */
   private prepareAdvancePair(a: Ball, b: Ball, t: number): boolean {
-    if (Collision.willCollide(a, b, t)) {
+    if (Collision.willCollide(a, b, t / 1_000)) {
       const incidentSpeed = Collision.collide(a, b);
       this.outcome.push(Outcome.collision(a, b, incidentSpeed));
       return false;
@@ -124,15 +124,15 @@ export class Table {
 
   /**
    * Check if a ball can advance without hitting table elements
-   * @param a Ball to check
-   * @param t Time step in seconds
+   * @param ball Ball to check
+   * @param t Time step in milliseconds
    * @returns True if no collisions with cushions, knuckles or pockets
    */
-  private prepareAdvanceToCushions(a: Ball, t: number): boolean {
-    if (!a.onTable()) {
+  private prepareAdvanceToCushions(ball: Ball, t: number): boolean {
+    if (!ball.onTable()) {
       return true;
     }
-    const futurePosition = a.futurePosition(t);
+    const futurePosition = ball.futurePosition(t / 1_000);
     if (
       Math.abs(futurePosition.y) < TableGeometry.tableY &&
       Math.abs(futurePosition.x) < TableGeometry.tableX
@@ -141,26 +141,30 @@ export class Table {
     }
 
     const incidentSpeed = Cushion.bounceAny(
-      a,
-      t,
+      ball,
+      t / 1_000,
       TableGeometry.hasPockets,
       this.cushionModel,
     );
     if (incidentSpeed) {
-      this.outcome.push(Outcome.cushion(a, incidentSpeed));
+      this.outcome.push(Outcome.cushion(ball, incidentSpeed));
       return false;
     }
 
-    const k = Knuckle.findBouncing(a, t);
-    if (k) {
-      const knuckleIncidentSpeed = k.bounce(a);
-      this.outcome.push(Outcome.cushion(a, knuckleIncidentSpeed));
+    const knuckle = Knuckle.findBouncing(ball, t / 1_000);
+    if (knuckle) {
+      const knuckleIncidentSpeed = knuckle.bounce(ball);
+      this.outcome.push(Outcome.cushion(ball, knuckleIncidentSpeed));
       return false;
     }
-    const p = Pocket.findPocket(PocketGeometry.pocketCenters, a, t);
-    if (p) {
-      const pocketIncidentSpeed = p.fall(a, t);
-      this.outcome.push(Outcome.pot(a, pocketIncidentSpeed));
+    const pocket = Pocket.findPocket(
+      PocketGeometry.pocketCenters,
+      ball,
+      t / 1_000,
+    );
+    if (pocket) {
+      const pocketIncidentSpeed = pocket.fall(ball, t / 1_000);
+      this.outcome.push(Outcome.pot(ball, pocketIncidentSpeed));
       return false;
     }
 
