@@ -19,7 +19,6 @@ export abstract class ControllerBase extends Controller {
       ),
     ];
     this.container.table.hit();
-    this.container.view.camera.suggestMode(this.container.view.camera.aimView);
     this.container.table.cue.showHelper(false);
   }
 
@@ -57,9 +56,6 @@ export abstract class ControllerBase extends Controller {
         return true;
       case "NumpadAdd":
         this.container.view.camera.adjustHeight(-delta * 8);
-        return true;
-      case "KeyOUp":
-        this.container.view.camera.toggleMode();
         return true;
       case "KeyDUp":
         this.togglePanel();

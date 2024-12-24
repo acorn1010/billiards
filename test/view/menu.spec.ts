@@ -22,18 +22,6 @@ beforeEach(function (done) {
 });
 
 describe("Menu", () => {
-  it("camera", (done) => {
-    const toggleview = document.getElementById("camera") as HTMLButtonElement;
-    expect(container.view.camera.mode).to.be.equal(
-      container.view.camera.topView,
-    );
-    fireEvent.click(toggleview, { target: { value: 1 } });
-    expect(container.view.camera.mode).to.be.equal(
-      container.view.camera.aimView,
-    );
-    done();
-  });
-
   it("replay mode shorten url", (done) => {
     menu.replayMode("someurl", new BreakEvent(null, []));
     const togglemenu = document.getElementById("share") as HTMLButtonElement;

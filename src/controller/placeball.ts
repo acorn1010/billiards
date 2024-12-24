@@ -19,7 +19,6 @@ export class PlaceBall extends ControllerBase {
     super(container);
     this.container.table.cue.moveTo(this.container.table.cueball.pos);
     this.container.table.cue.aim.power = 0;
-    this.container.view.camera.forceMode(this.container.view.camera.aimView);
   }
 
   override onFirst() {

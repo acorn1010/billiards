@@ -15,7 +15,6 @@ export class View {
   windowHeight = 1;
   readonly element;
   table: Table;
-  loadAssets = true;
   assets: Assets;
   constructor(element, table, assets) {
     this.element = element;
@@ -28,7 +27,7 @@ export class View {
     this.initialiseScene();
   }
 
-  update(elapsed, aim: AimEvent) {
+  update(elapsed: number, aim: AimEvent) {
     this.camera.update(elapsed, aim);
   }
 
@@ -49,13 +48,11 @@ export class View {
   }
 
   render() {
-    if (this.isInMotionNotVisible()) {
-      this.camera.suggestMode(this.camera.topView);
-    }
-    this.renderCamera(this.camera);
+    this.renderCamera();
   }
 
-  renderCamera(cam) {
+  private renderCamera() {
+    const camera = this.camera;
     if (this.updateSize()) {
       const width = this.windowWidth;
       const height = this.windowHeight;
@@ -65,10 +62,10 @@ export class View {
       this.renderer?.setScissor(0, 0, width, height);
       this.renderer?.setScissorTest(true);
 
-      cam.camera.aspect = width / height;
+      camera.camera.aspect = width / height;
     }
-    cam.camera.updateProjectionMatrix();
-    this.renderer?.render(this.scene, cam.camera);
+    camera.camera.updateProjectionMatrix();
+    this.renderer?.render(this.scene, camera.camera);
   }
 
   private initialiseScene() {

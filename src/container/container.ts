@@ -109,13 +109,15 @@ export class Container {
     this.advance((timestamp - this.last) / 1000);
     this.last = timestamp;
     this.processEvents();
+    // Render for 12 seconds after last event or if something changed.
     const needsRender =
-      timestamp < this.lastEventTime + 12000 ||
+      timestamp < this.lastEventTime + 12_000 ||
       !this.table.allStationary() ||
       this.view.sizeChanged();
     if (needsRender) {
       this.view.render();
     }
+    // Request next frame
     requestAnimationFrame((t) => {
       this.animate(t);
     });
