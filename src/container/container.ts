@@ -126,9 +126,11 @@ export class Container {
       this.view.render();
     }
     // Request next frame
-    requestAnimationFrame((t) => {
-      this.animate(t);
-    });
+    setTimeout(() => {
+      requestAnimationFrame((t) => {
+        this.animate(t);
+      });
+    }, 1_000);
   }
 
   updateController(controller) {

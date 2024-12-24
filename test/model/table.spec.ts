@@ -23,14 +23,14 @@ describe("Table", () => {
     const b = new Ball(new Vector3(1, 0, 0));
     const c = new Ball(new Vector3(2, 0, 0));
     const table = new Table([a, b, c]);
-    expect(table.prepareAdvanceAll(t * 1_000)).to.be.true;
+    expect(table.prepareAdvanceAll(t)).to.be.true;
     expect(table.allStationary()).to.be.true;
     done();
   });
 
   it("updates when single ball stationary", (done) => {
     const table = new Table([new Ball(zero)]);
-    expect(table.prepareAdvanceAll(t * 1_000)).to.be.true;
+    expect(table.prepareAdvanceAll(t)).to.be.true;
     expect(table.allStationary()).to.be.true;
     done();
   });
@@ -38,7 +38,7 @@ describe("Table", () => {
   it("halt all", (done) => {
     const table = new Table(Rack.diamond());
     table.balls[0].vel.x = 10 * R;
-    expect(table.prepareAdvanceAll(t * 1_000)).to.be.true;
+    expect(table.prepareAdvanceAll(t)).to.be.true;
     table.halt();
     expect(table.allStationary()).to.be.true;
     done();
@@ -64,10 +64,10 @@ describe("Table", () => {
     const c = new Ball(new Vector3(4.0 * R, 0, 0));
     const table = new Table([a, b, c]);
     expect(table.allStationary()).to.be.false;
-    expect(table.prepareAdvanceAll(t * 1_000)).to.be.false;
+    expect(table.prepareAdvanceAll(t)).to.be.false;
     table.advance(t * 1_000);
     expect(c.vel.x).to.be.closeTo(100 * R, 10 * R);
-    expect(table.prepareAdvanceAll(t * 1_000)).to.be.true;
+    expect(table.prepareAdvanceAll(t)).to.be.true;
     done();
   });
 
@@ -78,7 +78,7 @@ describe("Table", () => {
     a.vel.x = -100 * R;
     a.state = State.Sliding;
     const table = new Table([a, b, c]);
-    expect(table.prepareAdvanceAll(t * 1_000)).to.be.false;
+    expect(table.prepareAdvanceAll(t)).to.be.false;
     table.advance(t * 1_000);
     expect(c.vel.x).to.be.above(0);
     done();
@@ -95,7 +95,7 @@ describe("Table", () => {
     a.state = State.Sliding;
     const table = new Table([a, b]);
     expect(Collision.willCollide(a, b, t)).to.be.true;
-    const s = table.prepareAdvanceAll(t * 1_000);
+    const s = table.prepareAdvanceAll(t);
     expect(s).to.be.false;
     table.advance(t * 1_000);
     expect(b.onTable()).to.be.false;
@@ -120,7 +120,7 @@ describe("Table", () => {
     a.state = State.Sliding;
     const table = new Table([a, b]);
     TableGeometry.hasPockets = false;
-    const s = table.prepareAdvanceAll(t * 1_000);
+    const s = table.prepareAdvanceAll(t);
     expect(s).to.be.false;
     table.advance(t * 1_000);
     expect(b.onTable()).to.be.true;
@@ -139,7 +139,7 @@ describe("Table", () => {
     a.vel.y = 10 * R;
     a.state = State.Sliding;
     const table = new Table([a, b]);
-    expect(table.prepareAdvanceAll(t * 1_000)).to.be.false;
+    expect(table.prepareAdvanceAll(t)).to.be.false;
     table.advance(t * 1_000);
     expect(a.vel.x).to.be.below(0);
     done();
