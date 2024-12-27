@@ -81,7 +81,6 @@ export class Container {
     }
     this.table.updateBallMesh(computedElapsed);
     this.view.update(computedElapsed, this.table.cue.aim);
-    this.table.cue.update(computedElapsed);
     if (!stateBefore && this.table.allStationary()) {
       this.eventQueue.push(new StationaryEvent());
     }

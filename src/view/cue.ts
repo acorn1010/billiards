@@ -98,12 +98,6 @@ export class Cue {
     this.placerMesh.rotation.z = this.t;
   }
 
-  /** Adds `elapsedTimeSeconds` to the current timestamp for this cue stick. */
-  update(elapsedTimeSeconds: number) {
-    this.t += elapsedTimeSeconds;
-    this.moveTo(this.aim.pos);
-  }
-
   placeBallMode() {
     this.mesh.visible = false;
     this.placerMesh.visible = true;
