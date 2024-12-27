@@ -35,7 +35,9 @@ export class Container {
   hud: Hud;
 
   last = performance.now();
-  readonly step = 0.001953125;
+  private readonly step = 0.001953125; // 512 steps per second
+  /** Elapsed in seconds since the last step. */
+  private elapsedRemainderSeconds = 0;
 
   constructor(element, assets, ruletype?, keyboard?, id?) {
     this.rules = RuleFactory.create(ruletype, this);
@@ -66,10 +68,15 @@ export class Container {
 
   /** @VisibleForTesting */
   advance(elapsed: number) {
-    const steps = Math.floor(elapsed / this.step);
-    const computedElapsed = steps * this.step;
+    const totalElapsed = elapsed + this.elapsedRemainderSeconds;
+    const stepCount = Math.floor(totalElapsed / this.step);
+    this.elapsedRemainderSeconds = totalElapsed - stepCount * this.step;
+    if (!stepCount) {
+      return;
+    }
+    const computedElapsed = stepCount * this.step;
     const stateBefore = this.table.allStationary();
-    for (let i = 0; i < steps; i++) {
+    for (let i = 0; i < stepCount; i++) {
       this.table.advance(this.step);
     }
     this.table.updateBallMesh(computedElapsed);
@@ -106,7 +113,7 @@ export class Container {
   lastEventTime = performance.now();
 
   animate(timestamp: number): void {
-    this.advance((timestamp - this.last) / 1000);
+    this.advance((timestamp - this.last) / 1_000);
     this.last = timestamp;
     this.processEvents();
     // Render for 12 seconds after last event or if something changed.
