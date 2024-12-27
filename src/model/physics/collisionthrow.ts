@@ -15,8 +15,6 @@ export class CollisionThrow {
 
   public updateVelocities(a: Ball, b: Ball) {
     const contact = Collision.positionsAtContact(a, b);
-    a.ballmesh.trace.forceTrace(contact.a);
-    b.ballmesh.trace.forceTrace(contact.b);
     const ab = contact.b.sub(contact.a).normalize();
     const abTangent = new Vector3(-ab.y, ab.x, 0);
 

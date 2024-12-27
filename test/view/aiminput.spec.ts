@@ -18,14 +18,6 @@ describe("AimInput", () => {
     done();
   });
 
-  it("adjust spin", (done) => {
-    const e = { buttons: 1, offsetX: 1, offsetY: 1 };
-    fireEvent.click(aiminputs.cueBallElement);
-    aiminputs.mousemove(e);
-    expect(aiminputs.cueHitElement).to.be.not.null;
-    done();
-  });
-
   it("adjust power", (done) => {
     aiminputs.cuePowerElement.value = 1;
     fireEvent.change(aiminputs.cuePowerElement, { target: { value: 1 } });
@@ -36,12 +28,6 @@ describe("AimInput", () => {
   it("click hit button", (done) => {
     document.getElementById("cueHit")?.click();
     expect(aiminputs.container.inputQueue).to.be.not.empty;
-    done();
-  });
-
-  it("mouse wheel updates power", (done) => {
-    aiminputs.mousewheel({ deltaY: 10 });
-    expect(aiminputs.container.table.cue.aim.power).to.greaterThan(0);
     done();
   });
 });

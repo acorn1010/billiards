@@ -85,7 +85,7 @@ export class Container {
     if (!stateBefore && this.table.allStationary()) {
       this.eventQueue.push(new StationaryEvent());
     }
-    this.sound.processOutcomes(this.table.outcome);
+    this.sound.processOutcomes(this.table.outcomes);
   }
 
   processEvents() {

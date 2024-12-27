@@ -23,21 +23,21 @@ export class PocketGeometry {
     PocketGeometry.scaleToRadius(R);
   }
 
-  static scaleToRadius(R) {
-    PocketGeometry.PX = TableGeometry.tableX + R * (0.8 / 0.5);
-    PocketGeometry.PY = TableGeometry.tableY + R * (0.8 / 0.5);
-    PocketGeometry.knuckleInset = (R * 1.6) / 0.5;
-    PocketGeometry.knuckleRadius = (R * 0.31) / 0.5;
-    PocketGeometry.middleKnuckleInset = (R * 1.385) / 0.5;
-    PocketGeometry.middleKnuckleRadius = (R * 0.2) / 0.5;
-    PocketGeometry.cornerRadius = (R * 1.1) / 0.5;
-    PocketGeometry.middleRadius = (R * 0.9) / 0.5;
-    PocketGeometry.pocketLayout(R);
+  private static scaleToRadius(ballRadius: number) {
+    PocketGeometry.PX = TableGeometry.tableX + ballRadius * (0.8 / 0.5);
+    PocketGeometry.PY = TableGeometry.tableY + ballRadius * (0.8 / 0.5);
+    PocketGeometry.knuckleInset = (ballRadius * 1.6) / 0.5;
+    PocketGeometry.knuckleRadius = (ballRadius * 0.31) / 0.5;
+    PocketGeometry.middleKnuckleInset = (ballRadius * 1.385) / 0.5;
+    PocketGeometry.middleKnuckleRadius = (ballRadius * 0.2) / 0.5;
+    PocketGeometry.cornerRadius = (ballRadius * 1.1) / 0.5;
+    PocketGeometry.middleRadius = (ballRadius * 0.9) / 0.5;
+    PocketGeometry.pocketLayout(ballRadius);
     PocketGeometry.enumerateCenters();
     PocketGeometry.enumerateKnuckles();
   }
 
-  static enumerateKnuckles() {
+  private static enumerateKnuckles() {
     PocketGeometry.knuckles = [
       PocketGeometry.pockets.pocketNW.knuckleNE,
       PocketGeometry.pockets.pocketNW.knuckleSW,
@@ -54,7 +54,7 @@ export class PocketGeometry {
     ];
   }
 
-  static enumerateCenters() {
+  private static enumerateCenters() {
     PocketGeometry.pocketCenters = [
       PocketGeometry.pockets.pocketNW.pocket,
       PocketGeometry.pockets.pocketSW.pocket,
@@ -65,7 +65,7 @@ export class PocketGeometry {
     ];
   }
 
-  private static pocketLayout(R) {
+  private static pocketLayout(ballRadius: number) {
     PocketGeometry.pockets = {
       pocketNW: {
         pocket: new Pocket(
@@ -91,7 +91,7 @@ export class PocketGeometry {
       },
       pocketN: {
         pocket: new Pocket(
-          new Vector3(0, PocketGeometry.PY + (R * 0.7) / 0.5, 0),
+          new Vector3(0, PocketGeometry.PY + (ballRadius * 0.7) / 0.5, 0),
           PocketGeometry.middleRadius,
         ),
         knuckleNE: new Knuckle(
@@ -113,7 +113,7 @@ export class PocketGeometry {
       },
       pocketS: {
         pocket: new Pocket(
-          new Vector3(0, -PocketGeometry.PY - (R * 0.7) / 0.5, 0),
+          new Vector3(0, -PocketGeometry.PY - (ballRadius * 0.7) / 0.5, 0),
           PocketGeometry.middleRadius,
         ),
         knuckleSE: new Knuckle(

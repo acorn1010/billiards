@@ -200,7 +200,7 @@ describe("Controller", () => {
     container.controller = new PlayShot(container);
     container.table.cueball.setStationary();
     container.eventQueue.push(new StationaryEvent());
-    container.table.outcome.push(Outcome.pot(container.table.balls[1], 1));
+    container.table.outcomes.push(Outcome.pot(container.table.balls[1], 1));
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(Aim);
     done();
@@ -211,7 +211,7 @@ describe("Controller", () => {
     container.table.balls.forEach((b) => (b.state = State.InPocket));
     container.table.cueball.setStationary();
     container.eventQueue.push(new StationaryEvent());
-    container.table.outcome.push(Outcome.pot(container.table.balls[1], 1));
+    container.table.outcomes.push(Outcome.pot(container.table.balls[1], 1));
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(End);
     done();
@@ -222,7 +222,7 @@ describe("Controller", () => {
     container.table.cueball.setStationary();
     container.table.cueball.state = State.InPocket;
     container.eventQueue.push(new StationaryEvent());
-    container.table.outcome.push(Outcome.pot(container.table.cueball, 1));
+    container.table.outcomes.push(Outcome.pot(container.table.cueball, 1));
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(PlaceBall);
     done();
@@ -248,7 +248,7 @@ describe("Controller", () => {
     container.controller = new PlayShot(container);
     container.table.cueball.setStationary();
     container.eventQueue.push(new StationaryEvent());
-    container.table.outcome.push(Outcome.pot(container.table.cueball, 1));
+    container.table.outcomes.push(Outcome.pot(container.table.cueball, 1));
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(WatchAim);
     done();
@@ -328,7 +328,7 @@ describe("Controller", () => {
     container.table.cueball.vel.x = 0.001;
     container.advance(0.01);
     expect(container.eventQueue.length).to.equal(1);
-    container.table.outcome.push(Outcome.pot(container.table.balls[1], 1));
+    container.table.outcomes.push(Outcome.pot(container.table.balls[1], 1));
     container.processEvents();
     container.advance(0.01);
     expect(container.eventQueue.length).to.equal(1);

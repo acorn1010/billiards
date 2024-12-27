@@ -32,7 +32,7 @@ describe("ThreeCushion", () => {
     container.isSinglePlayer = false;
     container.table.cueball.setStationary();
     container.eventQueue.push(new StationaryEvent());
-    container.table.outcome.push(Outcome.cushion(container.table.balls[1], 1));
+    container.table.outcomes.push(Outcome.cushion(container.table.balls[1], 1));
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(WatchAim);
     done();
@@ -44,11 +44,11 @@ describe("ThreeCushion", () => {
     container.table.balls[0].setStationary();
     container.eventQueue.push(new StationaryEvent());
     const balls = container.table.balls;
-    container.table.outcome.push(Outcome.cushion(balls[0], 1));
-    container.table.outcome.push(Outcome.cushion(balls[0], 1));
-    container.table.outcome.push(Outcome.cushion(balls[0], 1));
-    container.table.outcome.push(Outcome.collision(balls[0], balls[1], 1));
-    container.table.outcome.push(Outcome.collision(balls[0], balls[2], 1));
+    container.table.outcomes.push(Outcome.cushion(balls[0], 1));
+    container.table.outcomes.push(Outcome.cushion(balls[0], 1));
+    container.table.outcomes.push(Outcome.cushion(balls[0], 1));
+    container.table.outcomes.push(Outcome.collision(balls[0], balls[1], 1));
+    container.table.outcomes.push(Outcome.collision(balls[0], balls[2], 1));
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(Aim);
     done();
@@ -58,7 +58,7 @@ describe("ThreeCushion", () => {
     container.controller = new PlayShot(container);
     container.table.cueball.setStationary();
     container.eventQueue.push(new StationaryEvent());
-    container.table.outcome.push(Outcome.cushion(container.table.balls[1], 1));
+    container.table.outcomes.push(Outcome.cushion(container.table.balls[1], 1));
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(Aim);
     expect(container.rules.cueball).to.be.equal(container.table.balls[1]);

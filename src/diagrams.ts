@@ -4,7 +4,6 @@ import {
   c0,
   s0,
   bounceHan,
-  cueToSpin,
   bounceHanBlend,
 } from "./model/physics/physics";
 import { Vector3 } from "three";
@@ -12,8 +11,7 @@ import { CushionPlot } from "./diagram/cushionplot";
 import { Graph } from "./diagram/graph";
 import { RollDiagram } from "./diagram/rolldiagram";
 import { DiagramContainer } from "./diagram/diagramcontainer";
-import { I, Mxy, Mz, R } from "./model/physics/constants";
-import { Cue } from "./view/cue";
+import { R } from "./model/physics/constants";
 
 let p1, p2, p3, p4, p5;
 let linegraph1, linegraph2, linegraph3, linegraph4;
@@ -34,21 +32,6 @@ if (rollcanvas) {
   if (id("cushion1")) {
     initialisePlots();
   }
-
-  if (id("derived")) {
-    reportConstants();
-  }
-}
-
-function reportConstants() {
-  const elt = id("derived");
-  const v = new Vector3(new Cue().maxPower, 0, 0);
-  const w = cueToSpin(new Vector3(0.5), v);
-  elt.innerHTML += `Mx,My    = ${Mxy.toFixed(6)}\n`;
-  elt.innerHTML += `Mz       = ${Mz.toFixed(6)}\n`;
-  elt.innerHTML += `I        = ${I.toFixed(6)}\n`;
-  elt.innerHTML += `Max vel  = ${v.length().toFixed(6)}\n`;
-  elt.innerHTML += `Max rvel = ${w.length().toFixed(4)}\n`;
 }
 
 function initialisePlots() {

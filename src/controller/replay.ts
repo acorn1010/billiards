@@ -31,7 +31,7 @@ export class Replay extends ControllerBase {
     }
   }
 
-  playNextShot(delay) {
+  playNextShot(delay: number) {
     const shot = this.shots.shift();
 
     if (shot?.type === EventType.RERACK) {

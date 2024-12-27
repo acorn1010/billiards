@@ -33,8 +33,8 @@ export class Table {
   cue = new Cue();
   /** All possible pairs of balls for collision detection */
   pairs: Pair[];
-  /** List of game events that have occurred */
-  outcome: Outcome[] = [];
+  /** List of game events that may occur as the physics is advanced. */
+  outcomes: Outcome[] = [];
   /** The white cue ball */
   cueball: Ball;
   /** Physics model for cushion bounces */
@@ -116,7 +116,7 @@ export class Table {
   private prepareAdvancePair(a: Ball, b: Ball, t: number): boolean {
     if (Collision.willCollide(a, b, t)) {
       const incidentSpeed = Collision.collide(a, b);
-      this.outcome.push(Outcome.collision(a, b, incidentSpeed));
+      this.outcomes.push(Outcome.collision(a, b, incidentSpeed));
       return false;
     }
     return true;
@@ -147,20 +147,20 @@ export class Table {
       this.cushionModel,
     );
     if (incidentSpeed) {
-      this.outcome.push(Outcome.cushion(a, incidentSpeed));
+      this.outcomes.push(Outcome.cushion(a, incidentSpeed));
       return false;
     }
 
     const k = Knuckle.findBouncing(a, t);
     if (k) {
       const knuckleIncidentSpeed = k.bounce(a);
-      this.outcome.push(Outcome.cushion(a, knuckleIncidentSpeed));
+      this.outcomes.push(Outcome.cushion(a, knuckleIncidentSpeed));
       return false;
     }
     const p = Pocket.findPocket(PocketGeometry.pocketCenters, a, t);
     if (p) {
       const pocketIncidentSpeed = p.fall(a, t);
-      this.outcome.push(Outcome.pot(a, pocketIncidentSpeed));
+      this.outcomes.push(Outcome.pot(a, pocketIncidentSpeed));
       return false;
     }
 

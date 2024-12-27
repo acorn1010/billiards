@@ -3,17 +3,17 @@ import { Controller, HitEvent, Input } from "./controller";
 import { ControllerBase } from "./controllerbase";
 import { PlayShot } from "./playshot";
 import { Replay } from "./replay";
+import { Container } from "../container/container";
 
 /**
  * Aim using input events.
  *
  */
 export class Aim extends ControllerBase {
-  constructor(container) {
+  constructor(container: Container) {
     super(container);
     const table = this.container.table;
     table.cue.aimMode();
-    table.cue.showHelper(true);
     table.cueball = this.container.rules.cueball;
     table.cue.moveTo(table.cueball.pos);
     table.cue.aimInputs.showOverlap();

@@ -2,13 +2,15 @@ import { Ball, State } from "../ball";
 import { CollisionThrow } from "./collisionthrow";
 import { R } from "./constants";
 
+const FOUR_R_SQUARED = 4 * R * R;
 export class Collision {
   static willCollide(a: Ball, b: Ball, t: number): boolean {
     return (
       (a.inMotion() || b.inMotion()) &&
       a.onTable() &&
       b.onTable() &&
-      a.futurePosition(t).distanceToSquared(b.futurePosition(t)) < 4 * R * R
+      a.futurePosition(t).distanceToSquared(b.futurePosition(t)) <
+        FOUR_R_SQUARED
     );
   }
 

@@ -72,7 +72,7 @@ export class Ball {
    */
   update(t: number): void {
     this.updatePosition(t);
-    if (this.state == State.Falling) {
+    if (this.state === State.Falling) {
       this.pocket?.updateFall(this, t);
     } else {
       this.updateVelocity(t);
@@ -137,9 +137,6 @@ export class Ball {
     const wz = passesThroughZero(this.rvel, delta.w);
     const halts = this.state === State.Rolling ? vz || wz : vz && wz;
     if (halts && Math.abs(this.rvel.z) < 0.01) {
-      // TODO(acorn1010): Seems like this will mean we can't have balls spinning in place.
-      //  Might want to change the way halt works so that angular / linear velocity are stopped
-      //  separately.
       this.setStationary();
       return true;
     }
@@ -213,6 +210,7 @@ export class Ball {
   }
 
   static fromSerialised(data: Pick<Ball, "pos" | "id">): Ball {
+    // This doesn't seem to get called during a normal game. Seems like it's for networking.
     return Ball.updateFromSerialised(new Ball(vec(data.pos)), data);
   }
 
@@ -220,6 +218,7 @@ export class Ball {
     b: Ball,
     data: Pick<Ball, "pos"> & Partial<Pick<Ball, "vel" | "rvel">>,
   ): Ball {
+    // This doesn't seem to get called during a normal game. Seems like it's for networking.
     b.pos.copy(data.pos);
     b.vel.copy(data?.vel ?? zero);
     b.rvel.copy(data?.rvel ?? zero);
