@@ -20,12 +20,11 @@ export class Replay extends ControllerBase {
     this.shots = [...shots];
     this.firstShot = this.shots[0];
     this.delay = delay;
-    this.container.table.showTraces(true);
     this.container.table.updateFromShortSerialised(this.init);
     if (retry) {
       const retryEvent = new BreakEvent(init, shots);
       retryEvent.retry = true;
-      this.container.eventQueue.push(retryEvent);
+      this.container.addEvent(retryEvent);
     } else {
       this.playNextShot(this.delay * 1.5);
     }
@@ -51,9 +50,7 @@ export class Replay extends ControllerBase {
     this.container.table.cue.t = 1;
     clearTimeout(this.timer);
     this.timer = setTimeout(() => {
-      this.container.eventQueue.push(
-        new HitEvent(this.container.table.cue.aim),
-      );
+      this.container.addEvent(new HitEvent(this.container.table.cue.aim));
       this.timer = undefined;
     }, delay);
   }
@@ -95,6 +92,7 @@ export class Replay extends ControllerBase {
     this.container.rules.cueball = this.container.table.cueball;
     this.container.table.cueball.pos.copy(aim.pos);
     this.container.table.cue.aim = aim;
+    this.container.table.updateBallPositions();
     return new Aim(this.container);
   }
 }

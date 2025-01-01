@@ -1,7 +1,7 @@
 import { Vector3, Vector3Like } from "three";
 
-export const zero = new Vector3(0, 0, 0);
-export const up = new Vector3(0, 0, 1);
+export const ZERO_VECTOR = new Vector3(0, 0, 0);
+export const UP_VECTOR = new Vector3(0, 0, 1);
 
 export function vec(v: Vector3Like) {
   return new Vector3(v.x, v.y, v.z);
@@ -9,7 +9,7 @@ export function vec(v: Vector3Like) {
 
 const upCrossVec = new Vector3();
 export function upCross(v: Vector3Like) {
-  return upCrossVec.copy(up).cross(v);
+  return upCrossVec.copy(UP_VECTOR).cross(v);
 }
 const normVec = new Vector3();
 export function norm(v: Vector3Like) {
@@ -22,7 +22,7 @@ export function passesThroughZero(v: Vector3Like, dv: Vector3Like) {
 }
 
 export function unitAtAngle(theta: number) {
-  return new Vector3(1, 0, 0).applyAxisAngle(up, theta);
+  return new Vector3(1, 0, 0).applyAxisAngle(UP_VECTOR, theta);
 }
 
 export function round(num: number) {

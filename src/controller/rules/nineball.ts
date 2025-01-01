@@ -11,7 +11,7 @@ import { Ball } from "../../model/ball";
 import { Outcome } from "../../model/outcome";
 import { Table } from "../../model/table";
 import { Rack } from "../../utils/rack";
-import { zero } from "../../utils/utils";
+import { ZERO_VECTOR } from "../../utils/utils";
 import { End } from "../end";
 import { Rules } from "./rules";
 import { R } from "../../model/physics/constants";
@@ -79,7 +79,7 @@ export class NineBall implements Rules {
       if (this.container.isSinglePlayer) {
         return new PlaceBall(this.container);
       }
-      this.container.sendEvent(new PlaceBallEvent(zero, true));
+      this.container.sendEvent(new PlaceBallEvent(ZERO_VECTOR, true));
       return new WatchAim(this.container);
     }
     if (Outcome.isBallPottedNoFoul(table.cueball, outcome)) {
@@ -88,7 +88,7 @@ export class NineBall implements Rules {
       this.score += pots;
       this.container.sound.playSuccess(table.inPockets());
       if (this.isEndOfGame(outcome)) {
-        this.container.eventQueue.push(new ChatEvent(null, `game over`));
+        this.container.addEvent(new ChatEvent(null, `game over`));
         this.container.recorder.wholeGameLink();
         return new End(this.container);
       }

@@ -1,64 +1,65 @@
-import { BeginEvent } from "../events/beginevent"
-import { BreakEvent } from "../events/breakevent"
-import { AimEvent } from "../events/aimevent"
-import { HitEvent } from "../events/hitevent"
-import { Input } from "../events/input"
-import { AbortEvent } from "../events/abortevent"
-import { WatchEvent } from "../events/watchevent"
-import { StationaryEvent } from "../events/stationaryevent"
-import { Container } from "../container/container"
-import { ChatEvent } from "../events/chatevent"
-import { PlaceBallEvent } from "../events/placeballevent"
-import { RejoinEvent } from "../events/rejoinevent"
-import { StartAimEvent } from "../events/startaimevent"
+import { BeginEvent } from "../events/beginevent";
+import { BreakEvent } from "../events/breakevent";
+import { AimEvent } from "../events/aimevent";
+import { HitEvent } from "../events/hitevent";
+import { Input } from "../events/input";
+import { AbortEvent } from "../events/abortevent";
+import { WatchEvent } from "../events/watchevent";
+import { StationaryEvent } from "../events/stationaryevent";
+import { Container } from "../container/container";
+import { ChatEvent } from "../events/chatevent";
+import { PlaceBallEvent } from "../events/placeballevent";
+import { RejoinEvent } from "../events/rejoinevent";
+import { StartAimEvent } from "../events/startaimevent";
 
-export { BeginEvent, AimEvent, HitEvent, Input, AbortEvent, StationaryEvent }
+export { BeginEvent, AimEvent, HitEvent, Input, AbortEvent, StationaryEvent };
 
 /**
  * Controller manages the state of the system reacting to input and network events in the animation loop.
  */
 export abstract class Controller {
-  container: Container
+  container: Container;
 
   constructor(container: Container) {
-    this.container = container
+    this.container = container;
   }
 
   handleInput(_: Input): Controller {
-    return this
+    return this;
   }
   handleBegin(_: BeginEvent): Controller {
-    return this
+    return this;
   }
   handleBreak(_: BreakEvent): Controller {
-    return this
+    return this;
   }
   handleStartAim(_: StartAimEvent): Controller {
-    return this
+    return this;
   }
   handleAim(_: AimEvent): Controller {
-    return this
+    return this;
   }
   handleHit(_: HitEvent): Controller {
-    return this
+    return this;
   }
   handleAbort(_: AbortEvent): Controller {
-    return this
+    return this;
   }
   handleWatch(_: WatchEvent): Controller {
-    return this
+    return this;
   }
   handlePlaceBall(_: PlaceBallEvent): Controller {
-    return this
+    return this;
   }
   handleStationary(_: StationaryEvent): Controller {
-    return this
+    return this;
   }
   handleChat(_: ChatEvent): Controller {
-    return this
+    return this;
   }
   handleRejoin(_: RejoinEvent): Controller {
-    return this
+    return this;
   }
+  /** Called when the type of event on the queue changes. */
   onFirst() {}
 }

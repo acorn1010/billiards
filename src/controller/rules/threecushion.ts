@@ -12,7 +12,7 @@ import { Rack } from "../../utils/rack";
 import { CameraTop } from "../../view/cameratop";
 import { TableGeometry } from "../../view/tablegeometry";
 import { Rules } from "./rules";
-import { zero } from "../../utils/utils";
+import { ZERO_VECTOR } from "../../utils/utils";
 import { Respot } from "../../utils/respot";
 import { StartAimEvent } from "../../events/startaimevent";
 
@@ -41,7 +41,7 @@ export class ThreeCushion implements Rules {
   }
 
   placeBall(_?): Vector3 {
-    return zero;
+    return ZERO_VECTOR;
   }
 
   getTableAssetPath(): string {

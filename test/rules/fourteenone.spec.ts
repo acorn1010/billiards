@@ -6,13 +6,14 @@ import { initDom } from "../view/dom";
 import { PocketGeometry } from "../../src/view/pocketgeometry";
 import { R } from "../../src/model/physics/constants";
 import { Vector3 } from "three";
-import { Ball, State } from "../../src/model/ball";
+import { Ball } from "../../src/model/ball";
 import { Aim } from "../../src/controller/aim";
 import { BeginEvent } from "../../src/events/beginevent";
 import { Input } from "../../src/events/input";
 import { WatchEvent } from "../../src/events/watchevent";
 import { RerackEvent } from "../../src/events/rerackevent";
 import { Assets } from "../../src/view/assets";
+import { PoolBallState } from "../../src/model/physics/PoolBallRigidBody";
 
 initDom();
 
@@ -45,7 +46,7 @@ describe("FourteenOne", () => {
   });
 
   function bringToAimMode() {
-    container.eventQueue.push(new BeginEvent());
+    container.addEvent(new BeginEvent());
     container.processEvents();
     container.inputQueue.push(new Input(0.1, "SpaceUp"));
     container.processEvents();
@@ -62,7 +63,7 @@ describe("FourteenOne", () => {
     const balls = container.table.balls;
     for (let i = 3; i < balls.length; i++) {
       balls[i].pos.copy(PocketGeometry.pockets.pocketS.pocket.pos);
-      balls[i].state = State.InPocket;
+      balls[i].state = PoolBallState.InPocket;
     }
     balls[0].pos.copy(new Vector3(0, edge + R * 4.2, 0));
     balls[1].pos.copy(new Vector3(0, edge + R * 2.1, 0));

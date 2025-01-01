@@ -1,5 +1,5 @@
-import { Ball } from "./ball";
 import { Table } from "./table";
+import { PoolBallRigidBody } from "./physics/PoolBallRigidBody";
 
 /**
  * Types of game events that can occur
@@ -32,8 +32,8 @@ export class Outcome {
    */
   private constructor(
     readonly type: OutcomeType,
-    private ballA: Ball,
-    public ballB: Ball,
+    private ballA: PoolBallRigidBody,
+    public ballB: PoolBallRigidBody,
     readonly incidentSpeed: number,
   ) {
     if (ballA === null || ballB === null) {
@@ -46,7 +46,7 @@ export class Outcome {
    * @param ballA Ball that was potted
    * @param incidentSpeed Speed when entering pocket
    */
-  static pot(ballA: Ball, incidentSpeed: number): Outcome {
+  static pot(ballA: PoolBallRigidBody, incidentSpeed: number): Outcome {
     return new Outcome(OutcomeType.Pot, ballA, ballA, incidentSpeed);
   }
 
@@ -55,7 +55,7 @@ export class Outcome {
    * @param ballA Ball that hit cushion
    * @param incidentSpeed Speed at impact in m/s
    */
-  static cushion(ballA: Ball, incidentSpeed: number): Outcome {
+  static cushion(ballA: PoolBallRigidBody, incidentSpeed: number): Outcome {
     return new Outcome(OutcomeType.Cushion, ballA, ballA, incidentSpeed);
   }
 
@@ -65,7 +65,11 @@ export class Outcome {
    * @param ballB Second ball in collision
    * @param incidentSpeed Speed at impact in m/s
    */
-  static collision(ballA: Ball, ballB: Ball, incidentSpeed: number): Outcome {
+  static collision(
+    ballA: PoolBallRigidBody,
+    ballB: PoolBallRigidBody,
+    incidentSpeed: number,
+  ): Outcome {
     return new Outcome(OutcomeType.Collision, ballA, ballB, incidentSpeed);
   }
 
@@ -74,7 +78,7 @@ export class Outcome {
    * @param ballA Ball that was hit
    * @param incidentSpeed Speed of cue at impact in m/s
    */
-  static hit(ballA: Ball, incidentSpeed: number): Outcome {
+  static hit(ballA: PoolBallRigidBody, incidentSpeed: number): Outcome {
     return new Outcome(OutcomeType.Hit, ballA, ballA, incidentSpeed);
   }
 
@@ -84,7 +88,10 @@ export class Outcome {
    * @param outcomes List of game events
    * @returns True if cue ball was potted
    */
-  static isCueBallPotted(cueBall: Ball, outcomes: Outcome[]): boolean {
+  static isCueBallPotted(
+    cueBall: PoolBallRigidBody,
+    outcomes: Outcome[],
+  ): boolean {
     return outcomes.some(
       (o) => o.type == OutcomeType.Pot && o.ballA === cueBall,
     );
@@ -96,7 +103,10 @@ export class Outcome {
    * @param outcomes List of game events
    * @returns True if a legal pot occurred
    */
-  static isBallPottedNoFoul(cueBall: Ball, outcomes: Outcome[]): boolean {
+  static isBallPottedNoFoul(
+    cueBall: PoolBallRigidBody,
+    outcomes: Outcome[],
+  ): boolean {
     return (
       outcomes.some((o) => o.type == OutcomeType.Pot && o.ballA !== null) &&
       !Outcome.isCueBallPotted(cueBall, outcomes)
@@ -108,7 +118,7 @@ export class Outcome {
    * @param outcomes List of game events
    * @returns Array of potted balls
    */
-  static pots(outcomes: Outcome[]): Ball[] {
+  static pots(outcomes: Outcome[]): PoolBallRigidBody[] {
     return outcomes
       .filter((o) => o.type == OutcomeType.Pot)
       .map((o) => o.ballA!);
@@ -125,11 +135,13 @@ export class Outcome {
 
   /**
    * Check if only red balls were potted
-   * @param outcomes List of game events
+   * @param _outcomes List of game events
    * @returns True if all potted balls were reds
    */
-  static onlyRedsPotted(outcomes: Outcome[]): boolean {
-    return this.pots(outcomes).every((b) => b.id > 6);
+  static onlyRedsPotted(_outcomes: Outcome[]): boolean {
+    // TODO(acorn1010): Move to Snooker logic.
+    return false;
+    // return this.pots(outcomes).every((b) => b.id > 6);
   }
 
   /**
@@ -158,11 +170,14 @@ export class Outcome {
    * @param outcomes List of game events
    * @returns True if three cushions were hit before second collision
    */
-  static isThreeCushionPoint(cueBall: Ball, outcomes: Outcome[]): boolean {
+  static isThreeCushionPoint(
+    cueBall: PoolBallRigidBody,
+    outcomes: Outcome[],
+  ): boolean {
     outcomes = Outcome.cueBallFirst(cueBall, outcomes).filter(
       (outcome) => outcome.ballA === cueBall,
     );
-    const cannons = new Set<Ball>();
+    const cannons = new Set<PoolBallRigidBody>();
     let cushions = 0;
     for (const outcome of outcomes) {
       if (outcome.type === OutcomeType.Cushion) {
@@ -184,7 +199,10 @@ export class Outcome {
    * @param outcomes List of game events to modify
    * @returns Modified outcomes list
    */
-  private static cueBallFirst(cueBall: Ball, outcomes: Outcome[]): Outcome[] {
+  private static cueBallFirst(
+    cueBall: PoolBallRigidBody,
+    outcomes: Outcome[],
+  ): Outcome[] {
     outcomes.forEach((o) => {
       if (o.type === OutcomeType.Collision && o.ballB === cueBall) {
         o.ballB = o.ballA;

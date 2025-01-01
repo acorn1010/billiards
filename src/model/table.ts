@@ -1,21 +1,24 @@
-import { Cushion } from "./physics/cushion";
+import { CushionRigidBody } from "./physics/cushion";
 import { Collision } from "./physics/collision";
-import { Knuckle } from "./physics/knuckle";
 import { Pocket } from "./physics/pocket";
 import { Cue } from "../view/cue";
-import { Ball, State } from "./ball";
+import { Ball } from "./ball";
 import { AimEvent } from "../events/aimevent";
 import { Outcome } from "./outcome";
 import { PocketGeometry } from "../view/pocketgeometry";
 import { TableGeometry } from "../view/tablegeometry";
 import { bounceHanBlend } from "./physics/physics";
-import { zero } from "../utils/utils";
+import { norm, ZERO_VECTOR } from "../utils/utils";
 import { R } from "./physics/constants";
 import { Scene, Vector3Like } from "three";
+import { PhysicsContext } from "./physics/PhysicsContext";
+import {
+  PoolBall,
+  PoolBallState,
+  PoolBallType,
+} from "./physics/PoolBallRigidBody";
 
-/**
- * Represents a pair of billiard balls for collision detection
- */
+/** Represents a pair of billiard balls for collision detection */
 type Pair = {
   /** First ball in the pair */
   a: Ball;
@@ -34,13 +37,18 @@ export class Table {
   /** All possible pairs of balls for collision detection */
   pairs: Pair[];
   /** List of game events that may occur as the physics is advanced. */
-  outcomes: Outcome[] = [];
+  readonly outcomes: Outcome[] = [];
   /** The white cue ball */
   cueball: Ball;
   /** Physics model for cushion bounces */
   cushionModel = bounceHanBlend;
   /** Visual mesh representation */
   mesh;
+
+  private readonly physicsContext = new PhysicsContext();
+
+  private readonly pocketGeometry = new PocketGeometry(R);
+  private readonly cushion = new CushionRigidBody(this.pocketGeometry);
 
   /**
    * Create a new table
@@ -59,12 +67,35 @@ export class Table {
     this.balls = balls;
     this.pairs = [];
     for (let a = 0; a < balls.length; a++) {
-      for (let b = 0; b < balls.length; b++) {
-        if (a < b) {
-          this.pairs.push({ a: balls[a], b: balls[b] });
-        }
+      for (let b = a + 1; b < balls.length; b++) {
+        this.pairs.push({ a: balls[a], b: balls[b] });
       }
     }
+
+    this.updateBallPositions();
+  }
+
+  /**
+   * Updates the pool physics context ball positions. Call whenever modifying ball positions
+   * outside of calls to step().
+   */
+  updateBallPositions(): void {
+    const balls = this.balls;
+    // Add balls to the physics world.
+    const ballPositions: PoolBall[] = [];
+    for (let i = 0; i < balls.length; ++i) {
+      const ball = balls[i];
+      const rotation = norm(ball.rvel);
+      ballPositions.push({
+        type: ball === this.cueball ? "Cue" : ((i + 1) as PoolBallType),
+        diameter: R * 2,
+        x: ball.pos.x,
+        y: ball.pos.y,
+        z: ball.pos.z,
+        rotation: [rotation.x, rotation.y, rotation.z],
+      });
+    }
+    this.physicsContext.setBallPositions(ballPositions);
   }
 
   /**
@@ -84,6 +115,7 @@ export class Table {
    */
   advance(t: number): void {
     let depth = 0;
+    this.physicsContext.step(t);
     while (!this.prepareAdvanceAll(t)) {
       if (depth++ > 100) {
         throw new Error("Depth exceeded resolving collisions");
@@ -98,6 +130,7 @@ export class Table {
    * Check if all balls can advance by time step without collisions
    * @param t Time step in seconds
    * @returns True if no collisions will occur
+   * @VisibleForTesting
    */
   prepareAdvanceAll(t: number): boolean {
     return (
@@ -124,15 +157,15 @@ export class Table {
 
   /**
    * Check if a ball can advance without hitting table elements
-   * @param a Ball to check
+   * @param ball Ball to check
    * @param t Time step in seconds
    * @returns True if no collisions with cushions, knuckles or pockets
    */
-  private prepareAdvanceToCushions(a: Ball, t: number): boolean {
-    if (!a.onTable()) {
+  private prepareAdvanceToCushions(ball: Ball, t: number): boolean {
+    if (!ball.onTable()) {
       return true;
     }
-    const futurePosition = a.futurePosition(t);
+    const futurePosition = ball.futurePosition(t);
     if (
       Math.abs(futurePosition.y) < TableGeometry.tableY &&
       Math.abs(futurePosition.x) < TableGeometry.tableX
@@ -140,39 +173,46 @@ export class Table {
       return true;
     }
 
-    const incidentSpeed = Cushion.bounceAny(
-      a,
+    const incidentSpeed = this.cushion.bounceAny(
+      ball,
       t,
       TableGeometry.hasPockets,
       this.cushionModel,
     );
     if (incidentSpeed) {
-      this.outcomes.push(Outcome.cushion(a, incidentSpeed));
+      this.outcomes.push(Outcome.cushion(ball, incidentSpeed));
       return false;
     }
 
-    const k = Knuckle.findBouncing(a, t);
-    if (k) {
-      const knuckleIncidentSpeed = k.bounce(a);
-      this.outcomes.push(Outcome.cushion(a, knuckleIncidentSpeed));
+    const knuckle = this.pocketGeometry.findBouncingKnuckle(ball, t);
+    if (knuckle) {
+      const knuckleIncidentSpeed = knuckle.bounce(ball);
+      this.outcomes.push(Outcome.cushion(ball, knuckleIncidentSpeed));
       return false;
     }
-    const p = Pocket.findPocket(PocketGeometry.pocketCenters, a, t);
-    if (p) {
-      const pocketIncidentSpeed = p.fall(a, t);
-      this.outcomes.push(Outcome.pot(a, pocketIncidentSpeed));
+    const maybePocket = Pocket.findPocket(
+      this.pocketGeometry.getPocketCenters(),
+      ball,
+      t,
+    );
+    if (maybePocket) {
+      const pocketIncidentSpeed = maybePocket.fall(ball, t);
+      this.outcomes.push(Outcome.pot(ball, pocketIncidentSpeed));
       return false;
     }
 
     return true;
   }
 
+  private wasStationary = true;
   /**
    * Check if all balls are stationary
    * @returns True if no balls are in motion
    */
   allStationary(): boolean {
-    return this.balls.every((b) => !b.inMotion());
+    const result = this.balls.every((b) => !b.inMotion());
+    this.wasStationary = result;
+    return result;
   }
 
   /**
@@ -187,10 +227,21 @@ export class Table {
    * Hit the cue ball with the cue stick
    */
   hit(): void {
+    this.physicsContext.reset();
+
+    // TODO(acorn1010): Populate the world with balls and cushions
+
+    this.outcomes.length = 0;
+    this.outcomes.push(Outcome.hit(this.cueball, this.cue.aim.power));
+    this.physicsContext.setOutcomes(this.outcomes);
+
     this.cue.hit(this.cueball);
-    this.balls.forEach((b) => {
-      b.ballmesh.trace.reset();
-    });
+    const maybeCueBall = this.physicsContext.getBalls()[0];
+    if (maybeCueBall) {
+      // TODO(acorn1010): In our code, replace this with wherever we're calling
+      //  applyImpulseAtPoint.
+      this.cue.hit(maybeCueBall!);
+    }
   }
 
   /**
@@ -250,9 +301,9 @@ export class Table {
       b.pos.x = data[i * 2];
       b.pos.y = data[i * 2 + 1];
       b.pos.z = 0;
-      b.vel.copy(zero);
-      b.rvel.copy(zero);
-      b.state = State.Stationary;
+      b.vel.copy(ZERO_VECTOR);
+      b.rvel.copy(ZERO_VECTOR);
+      b.state = PoolBallState.Stationary;
     });
   }
 
@@ -270,17 +321,6 @@ export class Table {
   }
 
   /**
-   * Toggle visibility of ball motion traces
-   * @param visible Whether traces should be visible
-   */
-  showTraces(visible: boolean): void {
-    this.balls.forEach((b) => {
-      b.ballmesh.trace.line.visible = visible;
-      b.ballmesh.trace.reset();
-    });
-  }
-
-  /**
    * Toggle visibility of ball spin indicators
    * @param visible Whether spin indicators should be visible
    */
@@ -295,9 +335,9 @@ export class Table {
    */
   halt(): void {
     this.balls.forEach((b) => {
-      b.vel.copy(zero);
-      b.rvel.copy(zero);
-      b.state = State.Stationary;
+      b.vel.copy(ZERO_VECTOR);
+      b.rvel.copy(ZERO_VECTOR);
+      b.state = PoolBallState.Stationary;
     });
   }
 

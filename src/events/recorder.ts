@@ -1,37 +1,37 @@
-import { Container } from "../container/container"
-import { Outcome } from "../model/outcome"
-import { ChatEvent } from "./chatevent"
-import { EventType } from "./eventtype"
-import { HitEvent } from "./hitevent"
-import JSONCrush from "jsoncrush"
-import { RerackEvent } from "./rerackevent"
-import { GameEvent } from "./gameevent"
+import { Container } from "../container/container";
+import { Outcome } from "../model/outcome";
+import { ChatEvent } from "./chatevent";
+import { EventType } from "./eventtype";
+import { HitEvent } from "./hitevent";
+import JSONCrush from "jsoncrush";
+import { RerackEvent } from "./rerackevent";
+import { GameEvent } from "./gameevent";
 
 export class Recorder {
-  container: Container
-  shots: GameEvent[] = []
-  states: number[][] = []
-  start = Date.now()
-  breakStart: number | undefined
-  breakStartTime
-  replayUrl
-  hiScoreUrl = "https://scoreboard-tailuge.vercel.app/hiscore.html"
+  container: Container;
+  shots: GameEvent[] = [];
+  states: number[][] = [];
+  start = Date.now();
+  breakStart: number | undefined;
+  breakStartTime;
+  replayUrl;
+  hiScoreUrl = "https://scoreboard-tailuge.vercel.app/hiscore.html";
   constructor(container: Container) {
-    this.container = container
+    this.container = container;
   }
 
   record(event) {
     if (event.type === EventType.WATCHAIM && "rerack" in event.json) {
-      this.states.push(this.container.table.shortSerialise())
+      this.states.push(this.container.table.shortSerialise());
       this.shots.push(
         RerackEvent.fromJson({
           balls: event.json.balls,
-        })
-      )
+        }),
+      );
     }
     if (event.type === EventType.HIT) {
-      this.states.push(this.container.table.shortSerialise())
-      this.shots.push((<HitEvent>event).tablejson.aim)
+      this.states.push(this.container.table.shortSerialise());
+      this.shots.push((<HitEvent>event).tablejson.aim);
     }
   }
 
@@ -41,21 +41,21 @@ export class Recorder {
       this.shots,
       this.start,
       this.container.rules.score,
-      true
-    )
+      true,
+    );
   }
 
   last() {
-    let last = this.states.length - 1
+    let last = this.states.length - 1;
     if (last > 0 && this.shots[last].type === "RERACK") {
-      last--
+      last--;
     }
-    return last
+    return last;
   }
 
   lastShot() {
-    const last = this.last()
-    return this.state(this.states[last], [this.shots[last]])
+    const last = this.last();
+    return this.state(this.states[last], [this.shots[last]]);
   }
 
   currentBreak() {
@@ -64,10 +64,10 @@ export class Recorder {
         this.states[this.breakStart],
         this.shots.slice(this.breakStart),
         this.breakStartTime,
-        this.container.rules.previousBreak
-      )
+        this.container.rules.previousBreak,
+      );
     }
-    return undefined
+    return undefined;
   }
 
   private state(init, events, start = 0, score = 0, wholeGame = false) {
@@ -78,103 +78,103 @@ export class Recorder {
       now: Date.now(),
       score: score,
       wholeGame: wholeGame,
-    }
+    };
   }
 
   updateBreak(outcome: Outcome[]) {
-    const isPartOfBreak = this.container.rules.isPartOfBreak(outcome)
-    const isEndOfGame = this.container.rules.isEndOfGame(outcome)
-    const potCount = Outcome.potCount(outcome)
+    const isPartOfBreak = this.container.rules.isPartOfBreak(outcome);
+    const isEndOfGame = this.container.rules.isEndOfGame(outcome);
+    const potCount = Outcome.potCount(outcome);
     if (!isPartOfBreak) {
-      this.breakLink(isEndOfGame)
+      this.breakLink(isEndOfGame);
     }
 
     this.lastShotLink(
       isPartOfBreak || isEndOfGame,
       potCount,
-      Outcome.pots(outcome)
-    )
+      Outcome.pots(outcome),
+    );
 
     if (isEndOfGame) {
-      this.breakLink(isEndOfGame)
+      this.breakLink(isEndOfGame);
     }
 
     if (!isPartOfBreak) {
-      this.breakStart = undefined
-      return
+      this.breakStart = undefined;
+      return;
     }
 
     if (this.breakStart === undefined) {
-      this.breakStart = this.last()
-      this.breakStartTime = Date.now()
+      this.breakStart = this.last();
+      this.breakStartTime = Date.now();
     }
   }
 
   lastShotLink(isPartOfBreak, potCount, balls) {
-    const pots = potCount > 1 ? potCount - 1 : 0
+    const pots = potCount > 1 ? potCount - 1 : 0;
 
-    let colourString = "#000000"
+    let colourString = "#000000";
     if (balls.length > 0) {
       balls.forEach((element) => {
-        colourString = "#" + element.ballmesh.color.getHexString()
-      })
+        colourString = "#" + element.ballmesh.color.getHexString();
+      });
     }
 
-    const shotIcon = "⚈".repeat(pots) + (isPartOfBreak ? "⚈" : "⚆")
-    const serialisedShot = JSON.stringify(this.lastShot())
-    this.generateLink(shotIcon, serialisedShot, colourString)
+    const shotIcon = "⚈".repeat(pots) + (isPartOfBreak ? "⚈" : "⚆");
+    const serialisedShot = JSON.stringify(this.lastShot());
+    this.generateLink(shotIcon, serialisedShot, colourString);
   }
 
   breakLink(includeLastShot) {
-    const currentBreak = this.currentBreak()
+    const currentBreak = this.currentBreak();
     if (!currentBreak) {
-      return
+      return;
     }
     if (!includeLastShot) {
-      currentBreak.shots.pop()
+      currentBreak.shots.pop();
     }
     if (currentBreak.shots.length === 1) {
-      return
+      return;
     }
     const breakScore =
       this.container.rules.currentBreak === 0
         ? this.container.rules.previousBreak
-        : this.container.rules.currentBreak
-    currentBreak.score = breakScore
-    const text = `break(${breakScore})`
-    const serialisedShot = JSON.stringify(currentBreak)
-    const compressed = JSONCrush.crush(serialisedShot)
-    this.generateLink(text, compressed, "black")
+        : this.container.rules.currentBreak;
+    currentBreak.score = breakScore;
+    const text = `break(${breakScore})`;
+    const serialisedShot = JSON.stringify(currentBreak);
+    const compressed = JSONCrush.crush(serialisedShot);
+    this.generateLink(text, compressed, "black");
     if (breakScore >= 4) {
-      this.generateHiScoreLink(compressed)
+      this.generateHiScoreLink(compressed);
     }
   }
 
   wholeGameLink() {
-    const game = this.wholeGame()
-    const text = `frame(${this.shotCount(game.shots)} shots)`
-    const serialisedGame = JSON.stringify(game)
-    const compressed = JSONCrush.crush(serialisedGame)
-    this.generateLink(text, compressed, "black")
+    const game = this.wholeGame();
+    const text = `frame(${this.shotCount(game.shots)} shots)`;
+    const serialisedGame = JSON.stringify(game);
+    const compressed = JSONCrush.crush(serialisedGame);
+    this.generateLink(text, compressed, "black");
   }
 
   shotCount(shots) {
-    return shots.filter((shot) => shot.type !== "RERACK").length
+    return shots.filter((shot) => shot.type !== "RERACK").length;
   }
 
   private generateLink(text, state, colour) {
-    const shotUri = `${this.replayUrl}${this.fullyEncodeURI(state)}`
-    const shotLink = `<a class="pill" style="color: ${colour}" target="_blank" href="${shotUri}">${text}</a>`
-    this.container.eventQueue.push(new ChatEvent(null, `${shotLink}`))
+    const shotUri = `${this.replayUrl}${this.fullyEncodeURI(state)}`;
+    const shotLink = `<a class="pill" style="color: ${colour}" target="_blank" href="${shotUri}">${text}</a>`;
+    this.container.addEvent(new ChatEvent(null, `${shotLink}`));
   }
 
   private generateHiScoreLink(state) {
-    const text = "hi score 🏆"
+    const text = "hi score 🏆";
     const shotUri = `${this.hiScoreUrl}?ruletype=${
       this.container.rules.rulename
-    }&state=${this.fullyEncodeURI(state)}`
-    const shotLink = `<a class="pill" target="_blank" href="${shotUri}">${text}</a>`
-    this.container.eventQueue.push(new ChatEvent(null, `${shotLink}`))
+    }&state=${this.fullyEncodeURI(state)}`;
+    const shotLink = `<a class="pill" target="_blank" href="${shotUri}">${text}</a>`;
+    this.container.addEvent(new ChatEvent(null, `${shotLink}`));
   }
 
   private fullyEncodeURI(uri) {
@@ -182,6 +182,6 @@ export class Recorder {
       .replace(/\(/g, "%28")
       .replace(/\)/g, "%29")
       .replace(/\!/g, "%21")
-      .replace(/\*/g, "%2A")
+      .replace(/\*/g, "%2A");
   }
 }

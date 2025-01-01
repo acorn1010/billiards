@@ -1,10 +1,11 @@
 import "mocha";
 import { expect } from "chai";
-import { Ball, State } from "../../src/model/ball";
+import { Ball } from "../../src/model/ball";
 import { Vector3 } from "three";
-import { zero, passesThroughZero } from "../../src/utils/utils";
+import { ZERO_VECTOR, passesThroughZero } from "../../src/utils/utils";
 import { forceRoll, surfaceVelocity } from "../../src/model/physics/physics";
 import { R } from "../../src/model/physics/constants";
+import { PoolBallState } from "../../src/model/physics/PoolBallRigidBody";
 
 const t = 0.1;
 
@@ -22,8 +23,8 @@ describe("Ball", () => {
     const pos = new Vector3(1, 2, 0);
     const ball = new Ball(pos);
     expect(ball.pos).to.deep.equal(pos);
-    expect(ball.vel).to.deep.equal(zero);
-    expect(ball.rvel).to.deep.equal(zero);
+    expect(ball.vel).to.deep.equal(ZERO_VECTOR);
+    expect(ball.rvel).to.deep.equal(ZERO_VECTOR);
     done();
   });
 
@@ -32,15 +33,15 @@ describe("Ball", () => {
     const ball = new Ball(pos);
     ball.update(1);
     expect(ball.pos).to.deep.equal(pos);
-    expect(ball.vel).to.deep.equal(zero);
-    expect(ball.rvel).to.deep.equal(zero);
+    expect(ball.vel).to.deep.equal(ZERO_VECTOR);
+    expect(ball.rvel).to.deep.equal(ZERO_VECTOR);
     done();
   });
 
   it("friction slows ball", (done) => {
     const ball = new Ball(new Vector3());
     ball.vel.x = 0.01;
-    ball.state = State.Sliding;
+    ball.state = PoolBallState.Sliding;
     ball.update(0.01);
     expect(ball.vel.x).to.be.below(0.01);
     done();
@@ -58,10 +59,10 @@ describe("Ball", () => {
     ball.vel.x = 1;
     ball.rvel.y = ball.vel.x / R;
     expect(ball.isRolling()).to.be.true;
-    ball.state = State.Sliding;
+    ball.state = PoolBallState.Sliding;
     ball.update(t);
     ball.updateMesh(t);
-    expect(ball.state).to.equal(State.Rolling);
+    expect(ball.state).to.equal(PoolBallState.Rolling);
     done();
   });
 
@@ -69,7 +70,7 @@ describe("Ball", () => {
     const ball = new Ball(new Vector3());
     ball.vel.x = 1;
     ball.rvel.y = ball.vel.x / R + 0.0001;
-    ball.state = State.Sliding;
+    ball.state = PoolBallState.Sliding;
     expect(ball.isRolling()).to.be.true;
     done();
   });
@@ -78,7 +79,7 @@ describe("Ball", () => {
     const ball = new Ball(new Vector3());
     ball.vel.x = 0;
     ball.rvel.y = 100;
-    ball.state = State.Sliding;
+    ball.state = PoolBallState.Sliding;
     expect(ball.isRolling()).to.be.false;
     ball.update(t);
     expect(ball.vel.x).to.be.above(0);
@@ -89,7 +90,7 @@ describe("Ball", () => {
     const ball = new Ball(new Vector3());
     ball.vel.x = 0;
     ball.rvel.y = 1;
-    ball.state = State.Sliding;
+    ball.state = PoolBallState.Sliding;
     expect(ball.isRolling()).to.be.false;
     ball.update(t);
     expect(ball.rvel.y).to.be.below(1);
@@ -100,7 +101,7 @@ describe("Ball", () => {
     const ball = new Ball(new Vector3());
     ball.vel.x = 0.1 * R;
     ball.rvel.y = ball.vel.x * (1 / R);
-    ball.state = State.Rolling;
+    ball.state = PoolBallState.Rolling;
     const maxiter = 100;
     let i = 0;
     while (i++ < maxiter && ball.isRolling()) {
@@ -113,12 +114,12 @@ describe("Ball", () => {
 
   it("spinning ball eventualy stops", (done) => {
     const ball = new Ball(new Vector3());
-    ball.state = State.Rolling;
+    ball.state = PoolBallState.Rolling;
     const initialz = 100 * R;
     ball.rvel.z = initialz;
     ball.update(t);
     expect(ball.rvel.z).to.be.lessThan(initialz);
-    ball.state = State.Sliding;
+    ball.state = PoolBallState.Sliding;
     ball.rvel.z = initialz;
     ball.update(t);
     ball.updateMesh(t);
@@ -129,7 +130,7 @@ describe("Ball", () => {
   it("stun ball does not roll back at end", (done) => {
     const ball = new Ball(new Vector3());
     ball.rvel.y = 0.2;
-    ball.state = State.Sliding;
+    ball.state = PoolBallState.Sliding;
     const maxiter = 100;
     let i = 0;
     while (i++ < maxiter && ball.inMotion()) {
@@ -171,7 +172,7 @@ describe("Ball", () => {
       state: "Rolling",
     });
     forceRoll(b.vel, b.rvel);
-    expect(surfaceVelocity(b.vel, b.rvel)).to.be.deep.equal(zero);
+    expect(surfaceVelocity(b.vel, b.rvel)).to.be.deep.equal(ZERO_VECTOR);
     expect(b.vel.x).to.be.equal(1);
     done();
   });

@@ -3,17 +3,16 @@ import { Table } from "../model/table";
 import { upCross, unitAtAngle, norm } from "../utils/utils";
 import { AimEvent } from "../events/aimevent";
 import { AimInputs } from "./aiminputs";
-import { Ball, State } from "../model/ball";
-import { cueToSpin } from "../model/physics/physics";
 import { CueMesh } from "./cuemesh";
 import { Mesh, Raycaster, Vector3 } from "three";
 import { R } from "../model/physics/constants";
+import { PoolBallRigidBody } from "../model/physics/PoolBallRigidBody";
 
 export class Cue {
   mesh: Mesh;
   readonly helperMesh: Mesh;
   readonly placerMesh: Mesh;
-  private readonly offCenterLimit = 0.3;
+  private readonly offCenterLimit = 0.5;
   private readonly maxPower = 150 * R;
   // TODO(acorn1010): Make this private. Only used by Replay.ts, which is only used by tests/.
   t = 0;
@@ -48,15 +47,13 @@ export class Cue {
     this.aim.power = value * this.maxPower;
   }
 
-  hit(ball: Ball) {
+  hit(cueball: PoolBallRigidBody) {
     const aim = this.aim;
     this.t = 0;
-    ball.state = State.Sliding;
-    ball.vel.copy(unitAtAngle(aim.angle).multiplyScalar(aim.power));
-    ball.rvel.copy(cueToSpin(aim.offset, ball.vel));
+    cueball.hit(aim.angle, aim.power, aim.offset);
   }
 
-  aimAtNext(cueball: Ball, ball: Ball) {
+  aimAtNext(cueball: PoolBallRigidBody, ball: PoolBallRigidBody) {
     if (!ball) {
       return;
     }

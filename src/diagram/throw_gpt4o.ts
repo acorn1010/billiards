@@ -1,6 +1,6 @@
 import { Vector3 } from "three";
 import { Ball } from "../model/ball";
-import { up, zero } from "../utils/utils";
+import { UP_VECTOR, ZERO_VECTOR } from "../utils/utils";
 import { I, m } from "../model/physics/constants";
 
 export class CollisionThrow {
@@ -60,12 +60,12 @@ export class CollisionThrow {
     // cue ball a is travelling +y only
     // object ball positioned so that collision angle is phi
 
-    const a = new Ball(zero);
+    const a = new Ball(ZERO_VECTOR);
     a.vel.copy(new Vector3(0, v, 0));
     a.rvel.copy(new Vector3(ωx, 0, ωz));
 
     const straight = new Vector3(0, 2 * CollisionThrow.R);
-    const bpos = straight.applyAxisAngle(up, ϕ);
+    const bpos = straight.applyAxisAngle(UP_VECTOR, ϕ);
     const b = new Ball(bpos);
 
     console.log("---original---");

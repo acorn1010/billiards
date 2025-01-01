@@ -3,7 +3,7 @@ import { Ball } from "../../src/model/ball";
 import { Table } from "../../src/model/table";
 import { Cue } from "../../src/view/cue";
 import { Vector3 } from "three";
-import { zero } from "../../src/utils/utils";
+import { ZERO_VECTOR } from "../../src/utils/utils";
 import { R } from "../../src/model/physics/constants";
 
 const t = 0.1;
@@ -14,7 +14,7 @@ function updateMatrix(table: Table) {
 }
 
 function createCueAndTable(ballPosition: Vector3) {
-  const a = new Ball(zero);
+  const a = new Ball(ZERO_VECTOR);
   const b = new Ball(ballPosition);
   const table = new Table([a, b]);
   updateMatrix(table);

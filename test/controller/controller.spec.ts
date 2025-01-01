@@ -17,13 +17,14 @@ import { Outcome } from "../../src/model/outcome";
 import { PlaceBall } from "../../src/controller/placeball";
 import { ChatEvent } from "../../src/events/chatevent";
 import { PlaceBallEvent } from "../../src/events/placeballevent";
-import { zero } from "../../src/utils/utils";
+import { ZERO_VECTOR } from "../../src/utils/utils";
 import { BreakEvent } from "../../src/events/breakevent";
 import { RejoinEvent } from "../../src/events/rejoinevent";
 import { initDom } from "../view/dom";
-import { Ball, State } from "../../src/model/ball";
+import { Ball } from "../../src/model/ball";
 import { Assets } from "../../src/view/assets";
 import { StartAimEvent } from "../../src/events/startaimevent";
+import { PoolBallState } from "../../src/model/physics/PoolBallRigidBody";
 
 initDom();
 
@@ -56,7 +57,7 @@ describe("Controller", () => {
   });
 
   it("Begin takes Init to PlaceBall", (done) => {
-    container.eventQueue.push(new BeginEvent());
+    container.addEvent(new BeginEvent());
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(PlaceBall);
     expect(broadcastEvents.pop()).to.be.an.instanceof(WatchEvent);
@@ -64,7 +65,7 @@ describe("Controller", () => {
   });
 
   it("WatchEvent takes Init to WatchAim", (done) => {
-    container.eventQueue.push(new WatchEvent(container.table.serialise()));
+    container.addEvent(new WatchEvent(container.table.serialise()));
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(WatchAim);
     done();
@@ -72,7 +73,7 @@ describe("Controller", () => {
 
   it("HitEvent takes WatchAim to PlayShot", (done) => {
     container.controller = new WatchAim(container);
-    container.eventQueue.push(new HitEvent(container.table.serialise()));
+    container.addEvent(new HitEvent(container.table.serialise()));
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(WatchShot);
     done();
@@ -80,7 +81,7 @@ describe("Controller", () => {
 
   it("AimEvent takes WatchAim to WatchAim", (done) => {
     container.controller = new WatchAim(container);
-    container.eventQueue.push(new AimEvent());
+    container.addEvent(new AimEvent());
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(WatchAim);
     done();
@@ -88,7 +89,7 @@ describe("Controller", () => {
 
   it("RejoinEvent takes WatchAim to WatchAim", (done) => {
     container.controller = new WatchAim(container);
-    container.eventQueue.push(new RejoinEvent());
+    container.addEvent(new RejoinEvent());
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(WatchAim);
     done();
@@ -98,7 +99,7 @@ describe("Controller", () => {
     const watchShot = new WatchShot(container);
     container.controller = watchShot;
     container.table.cueball.setStationary();
-    container.eventQueue.push(new StartAimEvent());
+    container.addEvent(new StartAimEvent());
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(Aim);
     done();
@@ -108,7 +109,7 @@ describe("Controller", () => {
     const watchShot = new WatchShot(container);
     container.controller = watchShot;
     container.table.cueball.setStationary();
-    container.eventQueue.push(new WatchEvent(container.table.serialise()));
+    container.addEvent(new WatchEvent(container.table.serialise()));
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(WatchAim);
     done();
@@ -120,7 +121,7 @@ describe("Controller", () => {
     container.table.cueball.setStationary();
     const state = container.table.serialise();
     const rerack = new WatchEvent({ ...state, rerack: true });
-    container.eventQueue.push(rerack);
+    container.addEvent(rerack);
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(WatchShot);
     done();
@@ -128,7 +129,7 @@ describe("Controller", () => {
 
   it("AimEvent does not take WatchShot to Aim when not stationary", (done) => {
     container.controller = new WatchShot(container);
-    container.eventQueue.push(new AimEvent());
+    container.addEvent(new AimEvent());
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(WatchShot);
     done();
@@ -138,7 +139,7 @@ describe("Controller", () => {
     const watchShot = new WatchShot(container);
     container.controller = watchShot;
     container.table.cueball.setStationary();
-    container.eventQueue.push(new PlaceBallEvent(zero, true));
+    container.addEvent(new PlaceBallEvent(ZERO_VECTOR, true));
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(PlaceBall);
     done();
@@ -148,9 +149,9 @@ describe("Controller", () => {
     const watchShot = new WatchShot(container);
     container.controller = watchShot;
     container.table.cueball.setStationary();
-    container.eventQueue.push(new StartAimEvent());
+    container.addEvent(new StartAimEvent());
     container.processEvents();
-    container.eventQueue.push(new StationaryEvent());
+    container.addEvent(new StationaryEvent());
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(Aim);
     done();
@@ -160,9 +161,9 @@ describe("Controller", () => {
     const watchShot = new WatchShot(container);
     container.controller = watchShot;
     container.table.cueball.setStationary();
-    container.eventQueue.push(new WatchEvent(container.table.serialise()));
+    container.addEvent(new WatchEvent(container.table.serialise()));
     container.processEvents();
-    container.eventQueue.push(new StationaryEvent());
+    container.addEvent(new StationaryEvent());
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(WatchAim);
     done();
@@ -170,7 +171,7 @@ describe("Controller", () => {
 
   it("StationaryEvent takes WatchShot to WatchShot", (done) => {
     container.controller = new WatchShot(container);
-    container.eventQueue.push(new StationaryEvent());
+    container.addEvent(new StationaryEvent());
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(WatchShot);
     done();
@@ -180,7 +181,7 @@ describe("Controller", () => {
     container.isSinglePlayer = false;
     container.controller = new PlayShot(container);
     container.table.cueball.setStationary();
-    container.eventQueue.push(new StationaryEvent());
+    container.addEvent(new StationaryEvent());
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(WatchAim);
     done();
@@ -190,7 +191,7 @@ describe("Controller", () => {
     container.controller = new PlayShot(container);
     container.isSinglePlayer = true;
     container.table.cueball.setStationary();
-    container.eventQueue.push(new StationaryEvent());
+    container.addEvent(new StationaryEvent());
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(Aim);
     done();
@@ -199,7 +200,7 @@ describe("Controller", () => {
   it("StationaryEvent takes active PlayShot to Aim if pot", (done) => {
     container.controller = new PlayShot(container);
     container.table.cueball.setStationary();
-    container.eventQueue.push(new StationaryEvent());
+    container.addEvent(new StationaryEvent());
     container.table.outcomes.push(Outcome.pot(container.table.balls[1], 1));
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(Aim);
@@ -208,9 +209,9 @@ describe("Controller", () => {
 
   it("StationaryEvent takes active PlayShot to End if end of game", (done) => {
     container.controller = new PlayShot(container);
-    container.table.balls.forEach((b) => (b.state = State.InPocket));
+    container.table.balls.forEach((b) => (b.state = PoolBallState.InPocket));
     container.table.cueball.setStationary();
-    container.eventQueue.push(new StationaryEvent());
+    container.addEvent(new StationaryEvent());
     container.table.outcomes.push(Outcome.pot(container.table.balls[1], 1));
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(End);
@@ -220,8 +221,8 @@ describe("Controller", () => {
   it("StationaryEvent takes active PlayShot to PlaceBall if in off", (done) => {
     container.controller = new PlayShot(container);
     container.table.cueball.setStationary();
-    container.table.cueball.state = State.InPocket;
-    container.eventQueue.push(new StationaryEvent());
+    container.table.cueball.state = PoolBallState.InPocket;
+    container.addEvent(new StationaryEvent());
     container.table.outcomes.push(Outcome.pot(container.table.cueball, 1));
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(PlaceBall);
@@ -235,7 +236,7 @@ describe("Controller", () => {
       "threecushion",
     );
     (container as any).broadcast = (x) => broadcastEvents.push(x);
-    container.eventQueue.push(new BeginEvent());
+    container.addEvent(new BeginEvent());
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(PlaceBall);
     container.processEvents();
@@ -247,7 +248,7 @@ describe("Controller", () => {
     container.isSinglePlayer = false;
     container.controller = new PlayShot(container);
     container.table.cueball.setStationary();
-    container.eventQueue.push(new StationaryEvent());
+    container.addEvent(new StationaryEvent());
     container.table.outcomes.push(Outcome.pot(container.table.cueball, 1));
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(WatchAim);
@@ -256,31 +257,31 @@ describe("Controller", () => {
 
   it("End handles all events", (done) => {
     container.controller = new End(container);
-    container.eventQueue.push(new AbortEvent());
+    container.addEvent(new AbortEvent());
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(End);
-    container.eventQueue.push(new AimEvent());
+    container.addEvent(new AimEvent());
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(End);
-    container.eventQueue.push(new BeginEvent());
+    container.addEvent(new BeginEvent());
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(End);
-    container.eventQueue.push(new HitEvent(container.table.serialise()));
+    container.addEvent(new HitEvent(container.table.serialise()));
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(End);
-    container.eventQueue.push(new WatchEvent(container.table));
+    container.addEvent(new WatchEvent(container.table));
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(End);
-    container.eventQueue.push(new StationaryEvent());
+    container.addEvent(new StationaryEvent());
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(End);
-    container.eventQueue.push(new ChatEvent("", ""));
+    container.addEvent(new ChatEvent("", ""));
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(End);
-    container.eventQueue.push(new BreakEvent());
+    container.addEvent(new BreakEvent());
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(End);
-    container.eventQueue.push(new PlaceBallEvent(zero, true));
+    container.addEvent(new PlaceBallEvent(ZERO_VECTOR, true));
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(End);
     container.inputQueue.push(new Input(0.1, "ArrowLeft"));
@@ -319,7 +320,7 @@ describe("Controller", () => {
 
   it("advance generates no event", (done) => {
     container.advance(0.1);
-    expect(container.eventQueue.length).to.equal(0);
+    expect(container.getEventCount()).to.equal(0);
     done();
   });
 
@@ -327,11 +328,11 @@ describe("Controller", () => {
     container.controller = new PlayShot(container);
     container.table.cueball.vel.x = 0.001;
     container.advance(0.01);
-    expect(container.eventQueue.length).to.equal(1);
+    expect(container.getEventCount()).to.equal(1);
     container.table.outcomes.push(Outcome.pot(container.table.balls[1], 1));
     container.processEvents();
     container.advance(0.01);
-    expect(container.eventQueue.length).to.equal(1);
+    expect(container.getEventCount()).to.equal(1);
     done();
   });
 
@@ -339,7 +340,7 @@ describe("Controller", () => {
     const watchShot = new WatchShot(container);
     container.controller = watchShot;
     container.table.cueball.setStationary();
-    container.eventQueue.push(new ChatEvent("", ""));
+    container.addEvent(new ChatEvent("", ""));
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(WatchShot);
     done();

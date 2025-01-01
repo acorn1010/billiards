@@ -1,5 +1,5 @@
 import { Vector3, Vector3Like } from "three";
-import { norm, upCross, up } from "../../utils/utils";
+import { norm, upCross, UP_VECTOR } from "../../utils/utils";
 import { muS, muC, g, m, Mz, Mxy, R, I, e } from "./constants";
 import { Mathaven } from "./mathaven";
 import { ee, μs, μw } from "../../diagram/constants";
@@ -105,13 +105,13 @@ export function rotateApplyUnrotate(
   w: Vector3,
   model: (v: Vector3, w: Vector3) => BodyKinematics,
 ): BodyKinematics {
-  const vr = v.clone().applyAxisAngle(up, theta);
-  const wr = w.clone().applyAxisAngle(up, theta);
+  const vr = v.clone().applyAxisAngle(UP_VECTOR, theta);
+  const wr = w.clone().applyAxisAngle(UP_VECTOR, theta);
 
   const delta = model(vr, wr);
 
-  delta.v.applyAxisAngle(up, -theta);
-  delta.w.applyAxisAngle(up, -theta);
+  delta.v.applyAxisAngle(UP_VECTOR, -theta);
+  delta.w.applyAxisAngle(UP_VECTOR, -theta);
   return delta;
 }
 
@@ -228,7 +228,7 @@ export function bounceHanBlend(v: Vector3, w: Vector3) {
 /**
  * Computes the spin (angular velocity) imparted to the ball by a cue strike
  * offset from the center. The offset is a fraction of the ball’s radius (R).
- * Formula adapted from established billiards analysis.
+ * Formula adapted from established Billiards analysis.
  *
  * @param offset A Vector3 representing (x, y, 0) offset from the center
  * @param v Ball velocity post-strike

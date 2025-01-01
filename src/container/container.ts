@@ -24,7 +24,7 @@ export class Container {
   view: View;
   controller: Controller;
   inputQueue: Input[] = [];
-  eventQueue: GameEvent[] = [];
+  private readonly eventQueue: GameEvent[] = [];
   keyboard: Keyboard;
   sound: Sound;
   recorder: Recorder;
@@ -62,6 +62,14 @@ export class Container {
     // no-op
   }
 
+  addEvent(event: GameEvent) {
+    this.eventQueue.push(event);
+  }
+
+  getEventCount() {
+    return this.eventQueue.length;
+  }
+
   sendEvent(event: GameEvent) {
     this.throttle.send(event);
   }
@@ -75,16 +83,18 @@ export class Container {
       return;
     }
     const computedElapsed = stepCount * this.step;
-    const stateBefore = this.table.allStationary();
+    const wasStationary = this.table.allStationary();
+
     for (let i = 0; i < stepCount; i++) {
       this.table.advance(this.step);
     }
     this.table.updateBallMesh(computedElapsed);
     this.view.update(computedElapsed, this.table.cue.aim);
-    if (!stateBefore && this.table.allStationary()) {
-      this.eventQueue.push(new StationaryEvent());
+
+    if (!wasStationary && this.table.allStationary()) {
+      this.addEvent(new StationaryEvent());
     }
-    this.sound.processOutcomes(this.table.outcomes);
+    // this.sound.processOutcomes(this.table.outcomes);
   }
 
   processEvents() {
@@ -129,7 +139,7 @@ export class Container {
     });
   }
 
-  updateController(controller) {
+  updateController(controller: Controller) {
     if (controller !== this.controller) {
       console.log("Transition to " + controllerName(controller));
       this.controller = controller;

@@ -1,54 +1,55 @@
-import { Ball, State } from "../model/ball"
-import { TableGeometry } from "../view/tablegeometry"
-import { R } from "../model/physics/constants"
-import { Table } from "../model/table"
-import { Rack } from "./rack"
+import { Ball } from "../model/ball";
+import { TableGeometry } from "../view/tablegeometry";
+import { R } from "../model/physics/constants";
+import { Table } from "../model/table";
+import { Rack } from "./rack";
+import { PoolBallState } from "../model/physics/PoolBallRigidBody";
 
 export class Respot {
   static respot(ball: Ball, table: Table) {
-    const positions = Rack.snookerColourPositions()
-    positions.push(positions[ball.id - 1])
-    positions.reverse()
+    const positions = Rack.snookerColourPositions();
+    positions.push(positions[ball.id - 1]);
+    positions.reverse();
 
     const placed = positions.some((p) => {
       if (!table.overlapsAny(p, ball)) {
-        ball.pos.copy(p)
-        ball.state = State.Stationary
-        return true
+        ball.pos.copy(p);
+        ball.state = PoolBallState.Stationary;
+        return true;
       }
-      return false
-    })
+      return false;
+    });
     if (!placed) {
-      Respot.respotBehind(positions[0], ball, table)
+      Respot.respotBehind(positions[0], ball, table);
     }
-    return ball
+    return ball;
   }
 
   static respotBehind(targetpos, ball, table) {
-    const pos = targetpos.clone()
+    const pos = targetpos.clone();
     while (pos.x < TableGeometry.tableX && table.overlapsAny(pos, ball)) {
-      pos.x += R / 8
+      pos.x += R / 8;
     }
     while (pos.x > -TableGeometry.tableX && table.overlapsAny(pos, ball)) {
-      pos.x -= R / 8
+      pos.x -= R / 8;
     }
-    ball.pos.copy(pos)
-    ball.state = State.Stationary
+    ball.pos.copy(pos);
+    ball.state = PoolBallState.Stationary;
   }
 
   static closest(cueball: Ball, balls: Ball[]) {
     const onTable = balls
       .filter((ball) => ball.onTable())
-      .filter((ball) => ball !== cueball)
+      .filter((ball) => ball !== cueball);
     if (onTable.length === 0) {
-      return
+      return;
     }
     const distanceToCueBall = (b) => {
-      return cueball.pos.distanceTo(b.pos)
-    }
+      return cueball.pos.distanceTo(b.pos);
+    };
     return onTable.reduce(
       (a, b) => (distanceToCueBall(a) < distanceToCueBall(b) ? a : b),
-      onTable[0]
-    )
+      onTable[0],
+    );
   }
 }

@@ -15,7 +15,7 @@ import { Table } from "../../model/table";
 import { TableGeometry } from "../../view/tablegeometry";
 import { PlaceBall } from "../placeball";
 import { PlaceBallEvent } from "../../events/placeballevent";
-import { zero } from "../../utils/utils";
+import { ZERO_VECTOR } from "../../utils/utils";
 import { ShotInfo, SnookerUtils } from "./snookerutils";
 import { StartAimEvent } from "../../events/startaimevent";
 
@@ -47,8 +47,9 @@ export class Snooker implements Rules {
 
     if (info.pots === 0) {
       if (!info.legalFirstCollision) {
-        const firstCollisionId = info.firstCollision?.ballB?.id ?? 0;
-        this.foulPoints = Math.max(4, firstCollisionId + 1);
+        // FIXME(acorn1010): This is broken.
+        // const firstCollisionId = info.firstCollision?.ballB?.id ?? 0;
+        // this.foulPoints = Math.max(4, firstCollisionId + 1);
       }
       if (this.currentBreak > 0) {
         // end of break, reset break score
@@ -102,17 +103,19 @@ export class Snooker implements Rules {
       return this.switchPlayer();
     }
 
-    if (Outcome.pots(outcome)[0].id > 6) {
-      this.foulPoints = this.foulCalculation(outcome, info);
-      return this.switchPlayer();
-    }
+    // FIXME(acorn1010): Broken
+    // if (Outcome.pots(outcome)[0].id > 6) {
+    //   this.foulPoints = this.foulCalculation(outcome, info);
+    //   return this.switchPlayer();
+    // }
 
     this.targetIsRed =
       SnookerUtils.redsOnTable(this.container.table).length > 0;
 
     // exactly one non red potted
 
-    const id = Outcome.pots(outcome)[0].id;
+    // FIXME(acorn1010): Broken
+    const id = 0; // Outcome.pots(outcome)[0].id;
     if (id !== info.firstCollision.ballB.id) {
       return this.foul(outcome, info);
     }
@@ -143,11 +146,13 @@ export class Snooker implements Rules {
     return this.switchPlayer();
   }
 
-  foulCalculation(outcomes: Outcome[], info: ShotInfo) {
-    const potted = Outcome.pots(outcomes)
-      .map((b) => b.id)
-      .filter((id) => id < 7);
-    let firstCollisionId = info.firstCollision?.ballB?.id ?? 0;
+  foulCalculation(_outcomes: Outcome[], _info: ShotInfo) {
+    const potted = [];
+    // FIXME(acorn1010): Broken
+    // Outcome.pots(outcomes)
+    //   .map((b) => b.id)
+    //   .filter((id) => id < 7);
+    let firstCollisionId = 0; // info.firstCollision?.ballB?.id ?? 0;
     if (firstCollisionId > 6) {
       firstCollisionId = 0;
     }
@@ -260,7 +265,7 @@ export class Snooker implements Rules {
     const table = this.container.table;
     this.container.sound.playSuccess(table.inPockets());
     if (Outcome.isClearTable(table)) {
-      this.container.eventQueue.push(new ChatEvent(null, `game over`));
+      this.container.addEvent(new ChatEvent(null, `game over`));
       this.container.recorder.wholeGameLink();
       return new End(this.container);
     }
@@ -276,7 +281,7 @@ export class Snooker implements Rules {
     if (this.container.isSinglePlayer) {
       return new PlaceBall(this.container);
     }
-    this.container.sendEvent(new PlaceBallEvent(zero, true));
+    this.container.sendEvent(new PlaceBallEvent(ZERO_VECTOR, true));
     return new WatchAim(this.container);
   }
 

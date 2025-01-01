@@ -52,7 +52,7 @@ export class BrowserContainer {
     );
     this.container.table.cushionModel = this.cushionModel;
 
-    this.container.eventQueue.push(new BreakEvent());
+    this.container.addEvent(new BreakEvent());
 
     // trigger animation loops
     this.container.animate(performance.now());

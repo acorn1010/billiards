@@ -28,6 +28,7 @@ export class PlaceBall extends ControllerBase {
     }
     cueball.setStationary();
     cueball.updateMesh(0);
+    this.container.table.updateBallPositions();
     this.container.table.cue.placeBallMode();
     this.container.table.cue.moveTo(this.container.table.cueball.pos);
     this.container.table.cue.aimInputs.setButtonText("Place\nBall");
@@ -82,6 +83,7 @@ export class PlaceBall extends ControllerBase {
     const delta = new Vector3(dx, dy);
     const ballPos = this.container.table.cueball.pos.add(delta);
     ballPos.copy(this.container.rules.placeBall(ballPos));
+    this.container.table.updateBallPositions();
     CueMesh.indicateValid(!this.container.table.overlapsAny(ballPos));
   }
 

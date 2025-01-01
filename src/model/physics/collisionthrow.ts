@@ -1,7 +1,7 @@
 import { Vector3 } from "three";
-import { Ball } from "../ball";
 import { Collision } from "./collision";
 import { I, m, R } from "./constants";
+import { PoolBallRigidBody } from "./PoolBallRigidBody";
 
 /**
  * Based on
@@ -13,7 +13,7 @@ export class CollisionThrow {
     return 0.01 + 0.108 * Math.exp(-1.088 * vRel);
   }
 
-  public updateVelocities(a: Ball, b: Ball) {
+  public updateVelocities(a: PoolBallRigidBody, b: PoolBallRigidBody) {
     const contact = Collision.positionsAtContact(a, b);
     const ab = contact.b.sub(contact.a).normalize();
     const abTangent = new Vector3(-ab.y, ab.x, 0);

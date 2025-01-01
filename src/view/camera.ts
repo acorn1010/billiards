@@ -1,5 +1,5 @@
 import { PerspectiveCamera, MathUtils } from "three";
-import { up, zero, unitAtAngle } from "../utils/utils";
+import { UP_VECTOR, ZERO_VECTOR, unitAtAngle } from "../utils/utils";
 import { AimEvent } from "../events/aimevent";
 import { CameraTop } from "./cameratop";
 import { R } from "../model/physics/constants";
@@ -27,8 +27,8 @@ export class Camera {
       CameraTop.viewPoint(this.camera.aspect, this.camera.fov),
       0.9,
     );
-    this.camera.up = up;
-    this.camera.lookAt(zero);
+    this.camera.up = UP_VECTOR;
+    this.camera.lookAt(ZERO_VECTOR);
   }
 
   aimView(aim: AimEvent, fraction = 0.08) {
@@ -44,8 +44,8 @@ export class Camera {
       fraction,
     );
     this.camera.position.z = h;
-    this.camera.up = up;
-    this.camera.lookAt(aim.pos.clone().addScaledVector(up, h / 2));
+    this.camera.up = UP_VECTOR;
+    this.camera.lookAt(aim.pos.clone().addScaledVector(UP_VECTOR, h / 2));
   }
 
   adjustHeight(delta: number) {

@@ -6,7 +6,6 @@ import { PlaceBall } from "./placeball";
 export class WatchShot extends ControllerBase {
   constructor(container) {
     super(container);
-    this.container.table.outcomes = [];
     this.container.table.hit();
   }
 

@@ -48,7 +48,7 @@ export class DiagramContainer {
       "replay",
     )! as HTMLButtonElement;
     this.replayButton(replaybutton);
-    this.container.eventQueue.push(
+    this.container.addEvent(
       new BreakEvent(this.breakState.init, this.breakState.shots),
     );
     this.container.animate(performance.now());
@@ -57,8 +57,8 @@ export class DiagramContainer {
   replayButton(replaybutton) {
     replaybutton.innerHTML = "↻";
     replaybutton.addEventListener("click", () => {
-      if (this.container.eventQueue.length == 0) {
-        this.container.eventQueue.push(
+      if (this.container.getEventCount() == 0) {
+        this.container.addEvent(
           new BreakEvent(this.breakState.init, this.breakState.shots),
         );
       }

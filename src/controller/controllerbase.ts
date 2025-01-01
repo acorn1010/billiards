@@ -1,7 +1,6 @@
 import { AbortEvent } from "../events/abortevent";
 import { Controller } from "./controller";
 import { End } from "./end";
-import { Outcome } from "../model/outcome";
 
 export abstract class ControllerBase extends Controller {
   readonly scale = 0.001;
@@ -11,12 +10,6 @@ export abstract class ControllerBase extends Controller {
   }
 
   hit() {
-    this.container.table.outcomes = [
-      Outcome.hit(
-        this.container.table.cueball,
-        this.container.table.cue.aim.power,
-      ),
-    ];
     this.container.table.hit();
   }
 

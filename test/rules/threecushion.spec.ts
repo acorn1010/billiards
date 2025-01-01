@@ -31,7 +31,7 @@ describe("ThreeCushion", () => {
     container.controller = new PlayShot(container);
     container.isSinglePlayer = false;
     container.table.cueball.setStationary();
-    container.eventQueue.push(new StationaryEvent());
+    container.addEvent(new StationaryEvent());
     container.table.outcomes.push(Outcome.cushion(container.table.balls[1], 1));
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(WatchAim);
@@ -42,7 +42,7 @@ describe("ThreeCushion", () => {
     container.controller = new PlayShot(container);
     container.isSinglePlayer = false;
     container.table.balls[0].setStationary();
-    container.eventQueue.push(new StationaryEvent());
+    container.addEvent(new StationaryEvent());
     const balls = container.table.balls;
     container.table.outcomes.push(Outcome.cushion(balls[0], 1));
     container.table.outcomes.push(Outcome.cushion(balls[0], 1));
@@ -57,7 +57,7 @@ describe("ThreeCushion", () => {
   it("ThreeCushion no point single player switch ball", (done) => {
     container.controller = new PlayShot(container);
     container.table.cueball.setStationary();
-    container.eventQueue.push(new StationaryEvent());
+    container.addEvent(new StationaryEvent());
     container.table.outcomes.push(Outcome.cushion(container.table.balls[1], 1));
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(Aim);

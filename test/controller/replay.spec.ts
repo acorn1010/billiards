@@ -67,14 +67,14 @@ describe("Controller Replay", () => {
   });
 
   it("BreakEvent takes Init to PlaceBall", (done) => {
-    container.eventQueue.push(new BreakEvent());
+    container.addEvent(new BreakEvent());
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(PlaceBall);
     done();
   });
 
   it("BreakEvent with state takes Init to Replay", (done) => {
-    container.eventQueue.push(new BreakEvent(state.init, state.shots));
+    container.addEvent(new BreakEvent(state.init, state.shots));
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(Replay);
     done();
@@ -82,7 +82,7 @@ describe("Controller Replay", () => {
 
   it("Replay and retry moves to Aim", (done) => {
     container.controller = new Replay(container, state.init, state.shots, true);
-    expect(container.eventQueue.length).to.be.equal(1);
+    expect(container.getEventCount()).to.be.equal(1);
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(Aim);
     done();
@@ -90,7 +90,7 @@ describe("Controller Replay", () => {
 
   it("BreakEvent takes Aim to Replay", (done) => {
     container.controller = new Aim(container);
-    container.eventQueue.push(new BreakEvent(state.init, state.shots));
+    container.addEvent(new BreakEvent(state.init, state.shots));
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(Replay);
     done();
@@ -115,7 +115,7 @@ describe("Controller Replay", () => {
   it("Stationary takes Replay to Replay", (done) => {
     container.controller = replayController;
     container.table.cueball.setStationary();
-    container.eventQueue.push(new StationaryEvent());
+    container.addEvent(new StationaryEvent());
     container.processEvents();
     expect(container.controller).to.be.an.instanceof(Replay);
     done();
@@ -130,7 +130,7 @@ describe("Controller Replay", () => {
       0,
     );
     container.table.cueball.setStationary();
-    container.eventQueue.push(new BreakEvent(state.init, state.shots));
+    container.addEvent(new BreakEvent(state.init, state.shots));
     container.processEvents();
     jest.advanceTimersByTime(1000);
     expect(container.controller).to.be.an.instanceof(Replay);

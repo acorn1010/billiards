@@ -1,80 +1,85 @@
-import { Ball } from "../ball";
 import { PocketGeometry } from "../../view/pocketgeometry";
 import { TableGeometry } from "../../view/tablegeometry";
 import { bounceHanBlend, rotateApplyUnrotate } from "./physics";
 import { Vector3 } from "three";
+import { BodyKinematics } from "./BodyKinematics";
+import { PoolBallRigidBody } from "./PoolBallRigidBody";
 
-export class Cushion {
+export class CushionRigidBody {
+  constructor(private readonly pocketGeometry: PocketGeometry) {}
+
   /**
    * Modify ball state reflecting in cushion if it impacts in time t.
    * Returns impact speed else undefined.
    *
    * Knuckle impacts are not part of this and handled elsewhere.
    */
-  static bounceAny(
-    ball: Ball,
+  bounceAny(
+    ball: PoolBallRigidBody,
     t: number,
     hasPockets: boolean = true,
     cushionModel = bounceHanBlend,
   ): number | undefined {
     const futurePosition = ball.futurePosition(t);
 
-    if (Cushion.willBounceLong(futurePosition, hasPockets)) {
+    if (this.willBounceLong(futurePosition, hasPockets)) {
       const dir =
         futurePosition.y > TableGeometry.tableY ? -Math.PI / 2 : Math.PI / 2;
-      return Cushion.bounceIn(dir, ball, cushionModel);
+      return this.bounceIn(dir, ball, cushionModel);
     }
 
-    if (Cushion.willBounceShort(futurePosition, hasPockets)) {
+    if (this.willBounceShort(futurePosition, hasPockets)) {
       const dir = futurePosition.x > TableGeometry.tableX ? 0 : Math.PI;
-      return Cushion.bounceIn(dir, ball, cushionModel);
+      return this.bounceIn(dir, ball, cushionModel);
     }
 
     return undefined;
   }
 
-  static willBounceShort(futurePosition, hasPockets) {
+  willBounceShort(futurePosition: Vector3, hasPockets: boolean) {
     if (!hasPockets) {
-      return Cushion.willBounceShortSegment(
+      return this.willBounceShortSegment(
         TableGeometry.Y,
         -TableGeometry.Y,
         futurePosition,
       );
     }
-    return Cushion.willBounceShortSegment(
-      PocketGeometry.pockets.pocketNW.knuckleSW.pos.y,
-      PocketGeometry.pockets.pocketSW.knuckleNW.pos.y,
+    const pockets = this.pocketGeometry.getPockets();
+    return this.willBounceShortSegment(
+      pockets.pocketNW.knuckleSW.pos.y,
+      pockets.pocketSW.knuckleNW.pos.y,
       futurePosition,
     );
   }
 
-  static willBounceLong(futurePosition, hasPockets) {
+  willBounceLong(futurePosition: Vector3, hasPockets: boolean) {
     if (!hasPockets) {
-      return Cushion.willBounceLongSegment(
+      return this.willBounceLongSegment(
         -TableGeometry.X,
         TableGeometry.X,
         futurePosition,
       );
     }
+    const pockets = this.pocketGeometry.getPockets();
     return (
-      Cushion.willBounceLongSegment(
-        PocketGeometry.pockets.pocketNW.knuckleNE.pos.x,
-        PocketGeometry.pockets.pocketN.knuckleNW.pos.x,
+      this.willBounceLongSegment(
+        pockets.pocketNW.knuckleNE.pos.x,
+        pockets.pocketN.knuckleNW.pos.x,
         futurePosition,
       ) ||
-      Cushion.willBounceLongSegment(
-        PocketGeometry.pockets.pocketN.knuckleNE.pos.x,
-        PocketGeometry.pockets.pocketNE.knuckleNW.pos.x,
+      this.willBounceLongSegment(
+        pockets.pocketN.knuckleNE.pos.x,
+        pockets.pocketNE.knuckleNW.pos.x,
         futurePosition,
       )
     );
   }
 
   /**
-   * Long Cushion refers to longest dimention of table (skipping middle pocket),
+   * Long Cushion refers to the longest dimension of table (skipping middle pocket),
    * in this model that is oriented along the X axis.
    */
-  private static willBounceLongSegment(
+  private willBounceLongSegment(
     left: number,
     right: number,
     futurePosition: Vector3,
@@ -86,7 +91,7 @@ export class Cushion {
     );
   }
 
-  private static willBounceShortSegment(
+  private willBounceShortSegment(
     top: number,
     bottom: number,
     futurePosition: Vector3,
@@ -98,8 +103,11 @@ export class Cushion {
     );
   }
 
-  private static bounceIn(rotation, ball, cushionModel) {
-    ball.ballmesh.trace.forceTrace(ball.futurePos);
+  private bounceIn(
+    rotation: number,
+    ball: PoolBallRigidBody,
+    cushionModel: (v: Vector3, w: Vector3) => BodyKinematics,
+  ) {
     const delta = rotateApplyUnrotate(
       rotation,
       ball.vel,

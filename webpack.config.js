@@ -1,6 +1,6 @@
-const path = require("path")
-const TerserPlugin = require("terser-webpack-plugin")
-let packagedeps = require("./package.json")
+const path = require("path");
+const TerserPlugin = require("terser-webpack-plugin");
+let packagedeps = require("./package.json");
 module.exports = {
   entry: {
     vendor: Object.keys(packagedeps.dependencies),
@@ -34,13 +34,16 @@ module.exports = {
   performance: { hints: false },
   mode: "production",
   optimization: {
-    minimize: true,
+    minimize: false,
     minimizer: [
       new TerserPlugin({
         minify: TerserPlugin.swcMinify,
         extractComments: false,
         terserOptions: {
           safari10: true,
+          compress: {
+            drop_debugger: false,
+          },
         },
       }),
     ],
@@ -53,4 +56,4 @@ module.exports = {
   cache: {
     type: "filesystem",
   },
-}
+};
