@@ -227,7 +227,7 @@ export class Table {
    * Hit the cue ball with the cue stick
    */
   hit(): void {
-    this.physicsContext.reset();
+    this.updateBallPositions();
 
     // TODO(acorn1010): Populate the world with balls and cushions
 
