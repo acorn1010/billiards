@@ -197,7 +197,7 @@ export class Table {
     );
     if (maybePocket) {
       const pocketIncidentSpeed = maybePocket.fall(ball, t);
-      this.outcomes.push(Outcome.pot(ball, pocketIncidentSpeed));
+      this.outcomes.push(Outcome.pot(ball, maybePocket, pocketIncidentSpeed));
       return false;
     }
 

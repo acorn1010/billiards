@@ -89,11 +89,13 @@ export class PocketGeometry {
 
   private createPockets(ballRadius: number) {
     // TODO(acorn1010): Rename knuckleSE / knuckleSW, etc. to knuckleLeft, knuckleRight.
+    let pocketIndex = 0;
     return {
       pocketNW: {
         pocket: new Pocket(
           new Vector3(-this.PX, this.PY, 0),
           this.cornerRadius,
+          pocketIndex++,
         ),
         knuckleNE: new Knuckle(
           new Vector3(
@@ -116,6 +118,7 @@ export class PocketGeometry {
         pocket: new Pocket(
           new Vector3(0, this.PY + (ballRadius * 0.7) / 0.5, 0),
           this.middleRadius,
+          pocketIndex++,
         ),
         knuckleNE: new Knuckle(
           new Vector3(
@@ -138,6 +141,7 @@ export class PocketGeometry {
         pocket: new Pocket(
           new Vector3(0, -this.PY - (ballRadius * 0.7) / 0.5, 0),
           this.middleRadius,
+          pocketIndex++,
         ),
         knuckleSE: new Knuckle(
           new Vector3(
@@ -157,7 +161,11 @@ export class PocketGeometry {
         ),
       },
       pocketNE: {
-        pocket: new Pocket(new Vector3(this.PX, this.PY, 0), this.cornerRadius),
+        pocket: new Pocket(
+          new Vector3(this.PX, this.PY, 0),
+          this.cornerRadius,
+          pocketIndex++,
+        ),
         knuckleNW: new Knuckle(
           new Vector3(
             TableGeometry.X - this.knuckleInset,
@@ -179,6 +187,7 @@ export class PocketGeometry {
         pocket: new Pocket(
           new Vector3(this.PX, -this.PY, 0),
           this.cornerRadius,
+          pocketIndex++,
         ),
         knuckleNE: new Knuckle(
           new Vector3(
@@ -201,6 +210,7 @@ export class PocketGeometry {
         pocket: new Pocket(
           new Vector3(-this.PX, -this.PY, 0),
           this.cornerRadius,
+          pocketIndex++,
         ),
         knuckleSE: new Knuckle(
           new Vector3(

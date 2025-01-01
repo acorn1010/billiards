@@ -1,5 +1,6 @@
 import { Table } from "./table";
 import { PoolBallRigidBody } from "./physics/PoolBallRigidBody";
+import { Pocket } from "./physics/pocket";
 
 /**
  * Types of game events that can occur
@@ -16,7 +17,7 @@ const enum OutcomeType {
 }
 
 /**
- * Represents a game event like a collision or pot
+ * Represents a game event like a ball-ball / ball-wall collision or pot
  */
 export class Outcome {
   /** Unix timestamp when this event occurred in ms. */
@@ -28,6 +29,7 @@ export class Outcome {
    * @param ballA Primary ball involved
    * @param ballB Secondary ball involved (same as ballA for non-collision events)
    * @param incidentSpeed Speed at time of event
+   * @param pocket Pocket that ball fell into. Only available if type === 'Pot'
    * @throws Error if either ball is null
    */
   private constructor(
@@ -35,6 +37,7 @@ export class Outcome {
     private ballA: PoolBallRigidBody,
     public ballB: PoolBallRigidBody,
     readonly incidentSpeed: number,
+    readonly pocket?: Pocket,
   ) {
     if (ballA === null || ballB === null) {
       throw new Error("Ball cannot be null");
@@ -43,11 +46,16 @@ export class Outcome {
 
   /**
    * Create a pot event
-   * @param ballA Ball that was potted
+   * @param ball Ball that was potted
+   * @param pocket Pocket that ball fell into
    * @param incidentSpeed Speed when entering pocket
    */
-  static pot(ballA: PoolBallRigidBody, incidentSpeed: number): Outcome {
-    return new Outcome(OutcomeType.Pot, ballA, ballA, incidentSpeed);
+  static pot(
+    ball: PoolBallRigidBody,
+    pocket: Pocket,
+    incidentSpeed: number,
+  ): Outcome {
+    return new Outcome(OutcomeType.Pot, ball, ball, incidentSpeed, pocket);
   }
 
   /**

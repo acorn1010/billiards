@@ -37,6 +37,8 @@ export class PhysicsContext {
    * ball-ball, ball-cushion, and ball-pocket collisions.
    */
   private readonly outcomes: Outcome[] = [];
+  /** Last 0-based element index of `outcomes` sent in `#step` + 1. */
+  private lastOutcomeIndex = 0;
 
   private readonly cushionModel = mathavenAdapter; // bounceHanBlend;
 
@@ -68,7 +70,7 @@ export class PhysicsContext {
   }
 
   /** Advances the state of the physics simulation by `timestepSeconds` seconds. */
-  step(timestepSeconds: number) {
+  step(timestepSeconds: number): Outcome[] {
     let depth = 0;
     while (!this.prepareAdvanceAll(timestepSeconds)) {
       if (depth++ > 100) {
@@ -79,6 +81,10 @@ export class PhysicsContext {
     for (const ball of this.balls) {
       ball?.update(timestepSeconds);
     }
+
+    const result = this.outcomes.slice(this.lastOutcomeIndex);
+    this.lastOutcomeIndex = this.outcomes.length;
+    return result;
   }
 
   /** Called at the start of #reset. Use for cleaning up any state related to the physics. */
@@ -198,7 +204,7 @@ export class PhysicsContext {
     );
     if (maybePocket) {
       const pocketIncidentSpeed = maybePocket.fall(ball, t);
-      this.outcomes.push(Outcome.pot(ball, pocketIncidentSpeed));
+      this.outcomes.push(Outcome.pot(ball, maybePocket, pocketIncidentSpeed));
       return false;
     }
 

@@ -14,6 +14,8 @@ export class Pocket {
     /** @VisibleForTesting */
     readonly pos: Vector3,
     private readonly radius: number,
+    /** 0-based unique identifier of this pocket. */
+    readonly id: number,
   ) {}
 
   private static willFall(pocket: Pocket, futurePosition: Vector3) {
